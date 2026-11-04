@@ -44,6 +44,7 @@ func run(args []string) int {
 		gateway := fs.String("gateway", "", "HOST:PORT of the allowlisted HTTP proxy (gateway profile only)")
 		cwd, _ := os.Getwd()
 		workspace := fs.String("workspace", cwd, "workspace directory to mount read-write")
+		home := fs.String("home", "", "dedicated directory mounted as the sandbox HOME (default: empty, discarded)")
 		if err := fs.Parse(args[1:]); err != nil {
 			return 2
 		}
@@ -60,7 +61,7 @@ func run(args []string) int {
 			fmt.Fprintln(os.Stderr, "missing command: use veil run --profile offline -- COMMAND [ARGS...]")
 			return 2
 		}
-		cfg := sandbox.OfflineConfig{Workspace: *workspace, Executable: command[0], Args: command[1:]}
+		cfg := sandbox.OfflineConfig{Workspace: *workspace, Home: *home, Executable: command[0], Args: command[1:]}
 		if *profile == "gateway" {
 			return runGateway(cfg, *gateway)
 		}
@@ -202,5 +203,5 @@ func forwardSignals(signals <-chan os.Signal, info *os.File, bwrap *os.Process) 
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "Usage: veil doctor | veil run [--profile offline|gateway] [--gateway HOST:PORT] [--workspace DIR] -- COMMAND [ARGS...]")
+	fmt.Fprintln(os.Stderr, "Usage: veil doctor | veil run [--profile offline|gateway] [--gateway HOST:PORT] [--workspace DIR] [--home DIR] -- COMMAND [ARGS...]")
 }

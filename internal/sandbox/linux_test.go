@@ -146,6 +146,54 @@ func TestBuildOfflinePlan_ConstructsIsolatedInvocation(t *testing.T) {
 	}
 }
 
+func TestBuildOfflinePlan_MountsDedicatedHome(t *testing.T) {
+	// Arrange
+	if runtime.GOOS != "linux" {
+		t.Skip("Linux sandbox implementation")
+	}
+	useFakeBwrap(t, "#!/bin/sh\nexit 0\n")
+	home := t.TempDir()
+	cfg := OfflineConfig{Workspace: t.TempDir(), Home: home, Executable: "/bin/echo"}
+
+	// Act
+	plan, err := BuildOfflinePlan(cfg)
+
+	// Assert
+	if err != nil {
+		t.Fatal(err)
+	}
+	joined := " " + strings.Join(plan.Args, " ") + " "
+	if !strings.Contains(joined, " --bind "+home+" /home/veil ") {
+		t.Fatalf("expected dedicated home bind in %q", joined)
+	}
+	if strings.Contains(joined, " --dir /home/veil ") {
+		t.Fatal("dedicated home must replace the empty home directory")
+	}
+}
+
+func TestBuildOfflinePlan_RejectsRealHomeAsDedicatedHome(t *testing.T) {
+	// Arrange
+	if runtime.GOOS != "linux" {
+		t.Skip("Linux sandbox implementation")
+	}
+	useFakeBwrap(t, "#!/bin/sh\nexit 0\n")
+	realHome := t.TempDir()
+	t.Setenv("HOME", realHome)
+	workspace := filepath.Join(realHome, "project")
+	if err := os.MkdirAll(workspace, 0700); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, candidate := range []string{realHome, filepath.Dir(realHome), "/"} {
+		// Act
+		_, err := BuildOfflinePlan(OfflineConfig{Workspace: workspace, Home: candidate, Executable: "/bin/echo"})
+		// Assert
+		if err == nil {
+			t.Errorf("expected rejection of %q as dedicated home", candidate)
+		}
+	}
+}
+
 func TestBuildGatewayPlan_KeepsNetworkUnsharedAndMountsOnlyTheProxySocket(t *testing.T) {
 	// Arrange
 	if runtime.GOOS != "linux" {

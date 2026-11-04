@@ -165,6 +165,23 @@ func requireRealBwrap(t *testing.T) {
 	}
 }
 
+func TestRun_PersistsSandboxHomeInDedicatedDirectory(t *testing.T) {
+	// Arrange
+	requireRealBwrap(t)
+	home := t.TempDir()
+
+	// Act
+	code := run([]string{"run", "--home", home, "--workspace", t.TempDir(), "--", "/bin/sh", "-c", `touch "$HOME/credentials"`})
+
+	// Assert
+	if code != 0 {
+		t.Fatalf("sandboxed command failed with status %d", code)
+	}
+	if _, err := os.Stat(filepath.Join(home, "credentials")); err != nil {
+		t.Fatalf("file written to the sandbox HOME did not persist: %v", err)
+	}
+}
+
 func TestGatewaySandbox_ReachesProxyThroughSocket(t *testing.T) {
 	// Arrange
 	requireRealBwrap(t)

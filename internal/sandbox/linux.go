@@ -17,6 +17,7 @@ var BwrapPath = "/usr/bin/bwrap"
 // This is a test harness, not a production-grade anonymity boundary.
 type OfflineConfig struct {
 	Workspace  string
+	Home       string
 	Executable string
 	Args       []string
 }
@@ -74,6 +75,14 @@ func buildPlan(cfg OfflineConfig, extra []string, command []string) (Plan, error
 	if err != nil {
 		return Plan{}, err
 	}
+	homeMount := []string{"--dir", "/home/veil"}
+	if cfg.Home != "" {
+		home, err := dedicatedHome(cfg.Home)
+		if err != nil {
+			return Plan{}, err
+		}
+		homeMount = []string{"--bind", home, "/home/veil"}
+	}
 	if cfg.Executable == "" {
 		return Plan{}, errors.New("missing executable")
 	}
@@ -111,7 +120,9 @@ func buildPlan(cfg OfflineConfig, extra []string, command []string) (Plan, error
 		"--tmpfs", "/tmp",
 		"--tmpfs", "/run",
 		"--tmpfs", "/home",
-		"--dir", "/home/veil",
+	)
+	args = append(args, homeMount...)
+	args = append(args,
 		"--dir", "/tool",
 		"--ro-bind", executable, "/tool/command",
 		"--bind", workspace, "/workspace",
@@ -159,6 +170,32 @@ func safeWorkspace(dir string) (string, error) {
 				return "", errors.New("refusing to mount a hidden directory inside home (such as ~/.ssh or ~/.config) as workspace")
 			}
 		}
+	}
+	return actual, nil
+}
+
+func dedicatedHome(dir string) (string, error) {
+	actual, err := filepath.EvalSymlinks(dir)
+	if err != nil {
+		return "", fmt.Errorf("cannot resolve dedicated home: %w", err)
+	}
+	actual, err = filepath.Abs(actual)
+	if err != nil {
+		return "", err
+	}
+	if info, err := os.Stat(actual); err != nil || !info.IsDir() {
+		return "", errors.New("dedicated home must be an existing directory")
+	}
+	realHome, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("cannot determine real home: %w", err)
+	}
+	realHome, err = filepath.EvalSymlinks(realHome)
+	if err != nil {
+		return "", fmt.Errorf("cannot resolve real home: %w", err)
+	}
+	if actual == "/" || actual == realHome || isParent(actual, realHome) {
+		return "", errors.New("refusing to mount the real home directory or its parent as the sandbox home")
 	}
 	return actual, nil
 }
