@@ -1,0 +1,9 @@
+DataDirectory /var/lib/tor
+SocksPort 0.0.0.0:9050
+SocksPolicy accept 10.0.89.0/29
+SocksPolicy reject *
+ORPort 0
+ExitRelay 0
+ExitPolicy reject *:*
+ClientOnly 1
+SafeSocks 1

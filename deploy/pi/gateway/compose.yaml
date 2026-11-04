@@ -1,0 +1,31 @@
+name: veil-gateway
+
+services:
+  tor:
+    build: ./tor
+    image: veil-gateway-tor:local
+    restart: unless-stopped
+    networks: [egress, socks]
+    volumes:
+      - tor-data:/var/lib/tor
+
+  privoxy:
+    build: ./privoxy
+    image: veil-gateway-privoxy:local
+    restart: unless-stopped
+    networks: [edge, socks]
+    ports:
+      - "192.168.0.11:8118:8118"
+    depends_on: [tor]
+
+networks:
+  egress: {}
+  edge: {}
+  socks:
+    internal: true
+    ipam:
+      config:
+        - subnet: 10.0.89.0/29
+
+volumes:
+  tor-data: {}
