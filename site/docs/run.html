@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="Build a veil run command, run OpenCode through the gateway and check the sandbox offline.">
+<title>Step 3: Run a tool - veil</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<script src="../app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="../index.html"><img src="../favicon.svg" alt="" width="24" height="24">veil</a>
+    <nav class="topnav" aria-label="Main">
+      <ul><li><a href="index.html">Docs</a></li><li><a href="install.html" class="is-active">Guide</a></li><li><a href="security.html">Security</a></li><li><a href="faq.html">FAQ</a></li></ul>
+    </nav>
+    <div class="topbar-actions">
+      <a class="btn btn-ghost" href="https://github.com/joaaomanooel/veil">GitHub</a>
+      <button type="button" id="theme-toggle" class="btn btn-ghost" aria-pressed="false" hidden><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Dark theme</button>
+    </div>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="Documentation">
+  <button type="button" id="nav-toggle" class="btn nav-toggle" aria-expanded="false" aria-controls="nav-list" hidden>Menu<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+  <div id="nav-list" class="nav-list">
+    <p class="nav-group" id="ng-start">Start here</p>
+    <ol class="nav-pages" aria-labelledby="ng-start">
+      <li><a href="index.html">Introduction</a></li>
+      <li><a href="how-it-works.html">How it works</a></li>
+    </ol>
+    <p class="nav-group" id="ng-guide">Guide</p>
+    <ol class="nav-pages" aria-labelledby="ng-guide">
+      <li><a href="install.html"><span class="nav-step is-done"><span class="visually-hidden">Step </span>1<span class="visually-hidden">:</span></span> Install</a></li>
+      <li><a href="gateway.html"><span class="nav-step is-done"><span class="visually-hidden">Step </span>2<span class="visually-hidden">:</span></span> Set up the gateway</a></li>
+      <li><a href="run.html" aria-current="page"><span class="nav-step is-current"><span class="visually-hidden">Step </span>3<span class="visually-hidden">:</span></span> Run a tool</a>
+        <ul class="toc" aria-label="On this page">
+          <li><a href="#usage">Usage and flags</a></li>
+          <li><a href="#builder">Command builder</a></li>
+          <li><a href="#smoke-test">Offline smoke test</a></li>
+          <li><a href="#other-tools">Using another tool</a></li>
+        </ul>
+      </li>
+    </ol>
+    <p class="nav-group" id="ng-ref">Reference</p>
+    <ol class="nav-pages" aria-labelledby="ng-ref">
+      <li><a href="security.html">Security</a></li>
+      <li><a href="faq.html">Limitations and FAQ</a></li>
+    </ol>
+  </div>
+</nav>
+<main id="main" class="content" tabindex="-1">
+<div class="page-head">
+<p class="eyebrow">Step 3 of 3</p>
+<div class="progress" aria-hidden="true"><span class="is-done"></span><span class="is-done"></span><span class="is-done"></span></div>
+<h1 id="top">Run a tool</h1>
+<p class="lead">Wrap your AI coding tool with <code>veil run</code>.</p>
+</div>
+<dl class="page-intro">
+<div><dt>What you will do</dt><dd>Learn the flags of <code>veil run</code>, build a command for OpenCode, check the sandbox offline and add another tool.</dd></div>
+<div><dt>Before you start</dt><dd>veil built in <a href="install.html">Step 1</a>, and for the <code>gateway</code> profile, the gateway from <a href="gateway.html">Step 2</a>.</dd></div>
+<div><dt>What comes next</dt><dd>Read the <a href="security.html">threat model and best practices</a> before you rely on veil.</dd></div>
+</dl>
+
+<section id="usage">
+<h2>Usage and flags</h2>
+<div class="code">
+<pre data-copy="usage synopsis" tabindex="0"><code>veil run [--profile offline|gateway] [--gateway HOST:PORT] [--workspace DIR] [--home DIR] -- COMMAND [ARGS...]</code></pre>
+</div>
+<div class="table-scroll" tabindex="0" role="group" aria-label="Flags of veil run">
+<table>
+<caption>Flags of <code>veil run</code></caption>
+<thead><tr><th scope="col">Flag</th><th scope="col">Default</th><th scope="col">Meaning</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code>--profile</code></th><td><code>offline</code></td><td><code>offline</code> has no network at all. <code>gateway</code> allows only the gateway.</td></tr>
+<tr><th scope="row"><code>--gateway</code></th><td>none</td><td><code>HOST:PORT</code> of the gateway proxy. It is required with <code>--profile gateway</code>, and only then.</td></tr>
+<tr><th scope="row"><code>--workspace</code></th><td>current directory</td><td>The only host directory mounted read-write.</td></tr>
+<tr><th scope="row"><code>--home</code></th><td>empty, discarded</td><td>A dedicated directory mounted as <code>HOME</code>, so logins and tool state survive between runs.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="callout callout-warn">
+<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17h.01"/></svg>
+<p>veil refuses <code>/</code>, your real home directory and its parents as a workspace or home. It also refuses hidden directories directly under your home as a workspace. Never run it with <code>sudo</code>.</p>
+</div>
+</section>
+
+<section id="builder">
+<h2>Command builder</h2>
+<p>Fill in the fields to build a <code>veil run</code> command. The builder checks the same rules as the command line. With JavaScript off, the example below is the OpenCode command from the README.</p>
+<div class="builder-panel">
+<form id="builder-form" class="builder" novalidate hidden>
+  <fieldset class="field-group">
+    <legend>Profile</legend>
+    <div class="radio-row">
+      <label class="radio-card"><input type="radio" name="profile" value="offline"> offline (no network)</label>
+      <label class="radio-card"><input type="radio" name="profile" value="gateway" checked> gateway (only the gateway)</label>
+    </div>
+  </fieldset>
+  <fieldset class="field-group">
+    <legend>Network</legend>
+    <div class="field">
+      <label for="f-gateway">Gateway <span class="hint">HOST:PORT, gateway profile only</span></label>
+      <input id="f-gateway" name="gateway" type="text" autocomplete="off" spellcheck="false" aria-describedby="e-gateway" value="gateway.local:8118">
+      <p id="e-gateway" class="field-msg"></p>
+    </div>
+  </fieldset>
+  <fieldset class="field-group">
+    <legend>Directories</legend>
+    <div class="field-grid">
+      <div class="field">
+        <label for="f-workspace">Workspace <span class="hint">optional, defaults to the current directory</span></label>
+        <input id="f-workspace" name="workspace" type="text" autocomplete="off" spellcheck="false" aria-describedby="e-workspace" value="~/projects/demo">
+        <p id="e-workspace" class="field-msg"></p>
+      </div>
+      <div class="field">
+        <label for="f-home">Home <span class="hint">optional, defaults to an empty home that is discarded</span></label>
+        <input id="f-home" name="home" type="text" autocomplete="off" spellcheck="false" aria-describedby="e-home" value="~/veil-homes/opencode">
+        <p id="e-home" class="field-msg"></p>
+      </div>
+    </div>
+    <p class="field-note">veil refuses <code>/</code>, your home directory and its parents as a workspace or home, and hidden directories directly under your home as a workspace.</p>
+  </fieldset>
+  <fieldset class="field-group">
+    <legend>Tool</legend>
+    <div class="field">
+      <label for="f-command">Command <span class="hint">required, the tool and its arguments</span></label>
+      <input id="f-command" name="command" type="text" autocomplete="off" spellcheck="false" aria-required="true" aria-describedby="e-command" value='opencode run "add a subtract function to calc.py"'>
+      <p id="e-command" class="field-msg"></p>
+    </div>
+  </fieldset>
+  <div id="builder-status" class="builder-status" aria-live="polite" aria-atomic="true"></div>
+</form>
+<div class="builder-output">
+<p class="output-label" id="output-label">Resulting command:</p>
+<div class="code">
+<pre id="builder-output" data-copy="resulting command" tabindex="0" role="group" aria-labelledby="output-label"><code>./veil run --profile gateway --gateway gateway.local:8118 --workspace ~/projects/demo --home ~/veil-homes/opencode -- opencode run "add a subtract function to calc.py"</code></pre>
+</div>
+</div>
+</div>
+<p>Create the home directory first, for example with <code>mkdir -p ~/veil-homes/opencode</code>. Replace <code>gateway.local</code> with the name or IP of the machine that runs the gateway. The dedicated home keeps OpenCode's login and configuration away from your real <code>HOME</code>.</p>
+</section>
+
+<section id="smoke-test">
+<h2>Offline smoke test</h2>
+<p>This checks the sandbox without any network:</p>
+<div class="code">
+<pre data-copy="smoke test" tabindex="0"><code>mkdir -p /tmp/veil-demo
+./veil run --workspace /tmp/veil-demo -- /bin/sh -c 'echo "HOME=$HOME"; hostname; ls /workspace'</code></pre>
+</div>
+</section>
+
+<section id="other-tools">
+<h2>Using another tool</h2>
+<ol class="steps">
+<li>Find the domains the tool needs. Check its documentation, or watch the gateway's <code>403</code> responses.</li>
+<li>Add the domains to the gateway allowlist in <code>privoxy/allowlist.action</code>. See <a href="gateway.html#setup">Step 2</a>.</li>
+<li>Use a separate <code>--home</code> directory for each tool.</li>
+<li>Make sure the tool honors <code>HTTPS_PROXY</code>. A tool that ignores it cannot reach the network in the <code>gateway</code> profile: it fails instead of leaking.</li>
+</ol>
+</section>
+<nav class="pager" aria-label="Previous and next pages">
+<a class="pager-link pager-prev" href="gateway.html" rel="prev"><span class="pager-label">Previous</span> <span class="pager-title">Set up the gateway</span></a>
+<a class="pager-link pager-next" href="security.html" rel="next"><span class="pager-label">Next</span> <span class="pager-title">Security</span></a>
+</nav>
+</main>
+</div>
+<footer class="site-footer">
+<div class="footer-inner">
+<p class="footer-brand"><img src="../favicon.svg" alt="" width="20" height="20">veil</p>
+<ul class="footer-links">
+<li><a href="https://github.com/joaaomanooel/veil">GitHub repository</a></li>
+<li><a href="https://github.com/joaaomanooel/veil/issues">Issues</a></li>
+<li><a href="https://github.com/joaaomanooel/veil/blob/main/SECURITY.md">Security policy</a> (report vulnerabilities <a href="https://github.com/joaaomanooel/veil/security/advisories/new">privately</a>, never in a public issue)</li>
+<li><a href="https://github.com/joaaomanooel/veil/blob/main/LICENSE">GPL-3.0 license</a></li>
+</ul>
+</div>
+</footer>
+<div id="announcer" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="veil runs an AI coding CLI in a sandbox, so the tool's vendor does not see your home IP address and the tool only sees the files you choose.">
+<title>veil: hide your home IP from AI coding tools</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="index.html"><img src="favicon.svg" alt="" width="24" height="24">veil</a>
+    <nav class="topnav" aria-label="Main">
+      <ul><li><a href="docs/index.html">Docs</a></li><li><a href="docs/install.html">Guide</a></li><li><a href="docs/security.html">Security</a></li><li><a href="docs/faq.html">FAQ</a></li></ul>
+    </nav>
+    <div class="topbar-actions">
+      <a class="btn btn-ghost" href="https://github.com/joaaomanooel/veil">GitHub</a>
+      <button type="button" id="theme-toggle" class="btn btn-ghost" aria-pressed="false" hidden><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Dark theme</button>
+    </div>
+  </div>
+</header>
+<main id="main" class="landing" tabindex="-1">
+<section class="band hero" aria-labelledby="top">
+<div class="band-inner">
+<h1 id="top">veil</h1>
+<p class="lead">Run an AI coding tool in a sandbox, so the tool's vendor does not see your home IP address and the tool only sees the files you choose.</p>
+<div class="hero-actions">
+<a class="btn btn-primary" href="docs/index.html">Read the docs</a>
+<a class="btn" href="https://github.com/joaaomanooel/veil">View on GitHub</a>
+</div>
+<p class="hero-status"><span class="badge badge-warn">Experimental</span> <span><strong>Status: experimental.</strong> This is not an anonymity tool, and it has not had an external security review. Read the <a href="docs/security.html">threat model</a> and the <a href="docs/faq.html#limitations">known limitations</a> before you rely on it.</span></p>
+</div>
+</section>
+
+<section class="band band-alt">
+<div class="band-inner">
+<h2>The problem, and what veil does</h2>
+<div class="split">
+<div class="card">
+<h3>The problem</h3>
+<p>AI coding tools, such as OpenCode, send your prompts and code to their vendor's servers. Every request also tells the vendor your home IP address. Your IP address can point to where you live.</p>
+</div>
+<div class="card">
+<h3>What veil does</h3>
+<p>veil runs the tool in a sandbox that can see only one project folder and has no network of its own. In the <code>gateway</code> profile, its only way out is a proxy that you host. The proxy sends the traffic through Cloudflare WARP, so the vendor sees a Cloudflare address instead of yours.</p>
+</div>
+</div>
+</div>
+</section>
+
+<section class="band">
+<div class="band-inner">
+<h2>How your traffic flows</h2>
+<figure class="diagram diagram-wide">
+<div class="diagram-art">
+<svg viewBox="0 0 360 700" role="img" aria-labelledby="diagram-title" aria-describedby="diagram-desc" focusable="false">
+  <title id="diagram-title">Network flow of veil in the gateway profile</title>
+  <desc id="diagram-desc">The tool talks to a bridge inside the sandbox. The bridge forwards through a unix socket to veil on the host. veil connects over TCP to the gateway, where Privoxy checks the allowlist, wireproxy carries the traffic into the Cloudflare WARP tunnel, and WARP sends it to the vendor. The same steps are listed as text next to the diagram.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" class="d-arrowhead"/>
+    </marker>
+  </defs>
+  <rect x="8" y="8" width="344" height="200" rx="12" class="d-group"/>
+  <text x="20" y="30" class="d-group-label">Sandbox (bubblewrap, no network)</text>
+  <rect x="40" y="44" width="280" height="54" rx="8" class="d-box"/>
+  <text x="180" y="67" class="d-title">AI tool</text>
+  <text x="180" y="86" class="d-sub">uses HTTPS_PROXY</text>
+  <line x1="180" y1="98" x2="180" y2="132" class="d-line" marker-end="url(#arrow)"/>
+  <rect x="40" y="136" width="280" height="54" rx="8" class="d-box"/>
+  <text x="180" y="159" class="d-title">In-sandbox bridge</text>
+  <text x="180" y="178" class="d-sub">veil at 127.0.0.1:8118</text>
+  <line x1="180" y1="190" x2="180" y2="232" class="d-line" marker-end="url(#arrow)"/>
+  <rect x="40" y="236" width="280" height="54" rx="8" class="d-box"/>
+  <text x="180" y="259" class="d-title">Unix socket</text>
+  <text x="180" y="278" class="d-sub">/run/veil/proxy.sock</text>
+  <line x1="180" y1="290" x2="180" y2="318" class="d-line" marker-end="url(#arrow)"/>
+  <rect x="40" y="322" width="280" height="54" rx="8" class="d-box"/>
+  <text x="180" y="345" class="d-title">veil on the host</text>
+  <text x="180" y="364" class="d-sub">connects over TCP</text>
+  <line x1="180" y1="376" x2="180" y2="418" class="d-line" marker-end="url(#arrow)"/>
+  <rect x="8" y="404" width="344" height="196" rx="12" class="d-group"/>
+  <text x="20" y="426" class="d-group-label">Gateway (Docker on your LAN)</text>
+  <rect x="40" y="436" width="280" height="40" rx="8" class="d-box"/>
+  <text x="180" y="461" class="d-title">Privoxy: domain allowlist</text>
+  <line x1="180" y1="476" x2="180" y2="492" class="d-line" marker-end="url(#arrow)"/>
+  <rect x="40" y="496" width="280" height="40" rx="8" class="d-box"/>
+  <text x="180" y="521" class="d-title">wireproxy (SOCKS5)</text>
+  <line x1="180" y1="536" x2="180" y2="552" class="d-line" marker-end="url(#arrow)"/>
+  <rect x="40" y="556" width="280" height="36" rx="8" class="d-box"/>
+  <text x="180" y="579" class="d-title">Cloudflare WARP tunnel</text>
+  <line x1="180" y1="600" x2="180" y2="634" class="d-line" marker-end="url(#arrow)"/>
+  <rect x="40" y="638" width="280" height="54" rx="8" class="d-box d-end"/>
+  <text x="180" y="661" class="d-title">Tool vendor</text>
+  <text x="180" y="680" class="d-sub">sees a Cloudflare address</text>
+</svg>
+</div>
+<figcaption>
+<p class="figcaption-title">Text version of the diagram:</p>
+<ol class="steps">
+<li>The AI tool runs inside the sandbox and sends its traffic to the proxy named in <code>HTTPS_PROXY</code>.</li>
+<li>A copy of <code>veil</code> inside the sandbox, the bridge, listens on <code>127.0.0.1:8118</code>.</li>
+<li>The bridge forwards the traffic through a unix socket, <code>/run/veil/proxy.sock</code>.</li>
+<li><code>veil</code> on the host receives it and opens a TCP connection to the gateway.</li>
+<li>On the gateway, Privoxy allows only the listed domains, wireproxy carries them into the Cloudflare WARP tunnel, and WARP sends them to the vendor.</li>
+</ol>
+</figcaption>
+</figure>
+</div>
+</section>
+
+<section class="band band-alt">
+<div class="band-inner">
+<h2>What you get</h2>
+<ul class="card-grid feature-grid">
+<li class="card feature">
+<h3>A sandbox for the tool</h3>
+<p>On Linux, veil uses bubblewrap to unshare all namespaces and clear the environment. It mounts one workspace read-write at <code>/workspace</code>, and an empty or dedicated <code>HOME</code>.</p>
+</li>
+<li class="card feature">
+<h3>An allowlisting gateway through WARP</h3>
+<p>A Docker Compose stack on your local network allows only the domains you list and sends them through a Cloudflare WARP tunnel. DNS is resolved inside the tunnel, never by the client.</p>
+</li>
+<li class="card feature">
+<h3>Fails closed</h3>
+<p>If the gateway is missing, veil refuses to start the tool. It never falls back to a direct connection.</p>
+</li>
+<li class="card feature">
+<h3>Wraps any CLI</h3>
+<p>You run <code>veil run ... -- &lt;tool&gt;</code> when you want the extra privacy. OpenCode is the first tool tested end to end. Any CLI that honors <code>HTTPS_PROXY</code> can work the same way.</p>
+</li>
+</ul>
+</div>
+</section>
+
+<section class="band">
+<div class="band-inner">
+<h2>Platforms at a glance</h2>
+<ul class="card-grid">
+<li class="card platform"><h3>Linux</h3><p><span class="badge badge-ok">Supported</span></p><p>With bubblewrap and unprivileged user namespaces. Tested end to end on arm64.</p></li>
+<li class="card platform"><h3>macOS</h3><p><span class="badge badge-planned">Planned</span></p><p>A Seatbelt backend that allows only the local proxy.</p></li>
+<li class="card platform"><h3>Windows</h3><p><span class="badge badge-no">Not supported</span></p><p>See <a href="https://github.com/joaaomanooel/veil/issues/3">issue #3</a>.</p></li>
+</ul>
+<p><a href="docs/how-it-works.html#platforms">Platform details</a></p>
+</div>
+</section>
+
+<section class="band band-alt">
+<div class="band-inner">
+<h2>Get started in 3 steps</h2>
+<ol class="card-grid step-cards">
+<li class="card"><p class="step-num" aria-hidden="true">1</p><h3><a href="docs/install.html">Install veil</a></h3><p>Build veil from source with Go and check your system with <code>veil doctor</code>.</p></li>
+<li class="card"><p class="step-num" aria-hidden="true">2</p><h3><a href="docs/gateway.html">Set up the gateway</a></h3><p>Start the Docker stack on your local network and test that it allows only the listed domains.</p></li>
+<li class="card"><p class="step-num" aria-hidden="true">3</p><h3><a href="docs/run.html">Run a tool</a></h3><p>Wrap OpenCode, or another CLI that honors <code>HTTPS_PROXY</code>, with <code>veil run</code>.</p></li>
+</ol>
+<div class="cta">
+<a class="btn btn-primary" href="docs/install.html">Start the guide</a>
+</div>
+</div>
+</section>
+</main>
+<footer class="site-footer">
+<div class="footer-inner">
+<p class="footer-brand"><img src="favicon.svg" alt="" width="20" height="20">veil</p>
+<ul class="footer-links">
+<li><a href="https://github.com/joaaomanooel/veil">GitHub repository</a></li>
+<li><a href="https://github.com/joaaomanooel/veil/issues">Issues</a></li>
+<li><a href="https://github.com/joaaomanooel/veil/blob/main/SECURITY.md">Security policy</a> (report vulnerabilities <a href="https://github.com/joaaomanooel/veil/security/advisories/new">privately</a>, never in a public issue)</li>
+<li><a href="https://github.com/joaaomanooel/veil/blob/main/LICENSE">GPL-3.0 license</a></li>
+</ul>
+</div>
+</footer>
+<div id="announcer" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

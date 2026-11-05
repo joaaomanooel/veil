@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="Known limitations of veil, answers to common questions, and how to contribute or report a vulnerability.">
+<title>Known limitations and FAQ - veil</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../style.css">
+<script src="../app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="../index.html"><img src="../favicon.svg" alt="" width="24" height="24">veil</a>
+    <nav class="topnav" aria-label="Main">
+      <ul><li><a href="index.html">Docs</a></li><li><a href="install.html">Guide</a></li><li><a href="security.html">Security</a></li><li><a href="faq.html" aria-current="page">FAQ</a></li></ul>
+    </nav>
+    <div class="topbar-actions">
+      <a class="btn btn-ghost" href="https://github.com/joaaomanooel/veil">GitHub</a>
+      <button type="button" id="theme-toggle" class="btn btn-ghost" aria-pressed="false" hidden><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Dark theme</button>
+    </div>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="Documentation">
+  <button type="button" id="nav-toggle" class="btn nav-toggle" aria-expanded="false" aria-controls="nav-list" hidden>Menu<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+  <div id="nav-list" class="nav-list">
+    <p class="nav-group" id="ng-start">Start here</p>
+    <ol class="nav-pages" aria-labelledby="ng-start">
+      <li><a href="index.html">Introduction</a></li>
+      <li><a href="how-it-works.html">How it works</a></li>
+    </ol>
+    <p class="nav-group" id="ng-guide">Guide</p>
+    <ol class="nav-pages" aria-labelledby="ng-guide">
+      <li><a href="install.html"><span class="nav-step"><span class="visually-hidden">Step </span>1<span class="visually-hidden">:</span></span> Install</a></li>
+      <li><a href="gateway.html"><span class="nav-step"><span class="visually-hidden">Step </span>2<span class="visually-hidden">:</span></span> Set up the gateway</a></li>
+      <li><a href="run.html"><span class="nav-step"><span class="visually-hidden">Step </span>3<span class="visually-hidden">:</span></span> Run a tool</a></li>
+    </ol>
+    <p class="nav-group" id="ng-ref">Reference</p>
+    <ol class="nav-pages" aria-labelledby="ng-ref">
+      <li><a href="security.html">Security</a></li>
+      <li><a href="faq.html" aria-current="page">Limitations and FAQ</a>
+        <ul class="toc" aria-label="On this page">
+          <li><a href="#limitations">Known limitations</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#contributing">Contributing and security</a></li>
+        </ul>
+      </li>
+    </ol>
+  </div>
+</nav>
+<main id="main" class="content" tabindex="-1">
+<div class="page-head">
+<p class="eyebrow">Reference</p>
+<h1 id="top">Known limitations and FAQ</h1>
+<p class="lead">What veil does not do yet, and answers to common questions.</p>
+</div>
+<dl class="page-intro">
+<div><dt>What you will do</dt><dd>Check the known limitations, read the answers to common questions, and find out how to contribute or report a vulnerability.</dd></div>
+<div><dt>Before you start</dt><dd>Nothing. You can read this page at any time.</dd></div>
+<div><dt>What comes next</dt><dd>This is the last page. Follow planned work in the <a href="https://github.com/joaaomanooel/veil/issues">issues</a>, or go back to the <a href="index.html">Introduction</a>.</dd></div>
+</dl>
+
+<section id="limitations">
+<h2>Known limitations</h2>
+<ul class="card dash-list">
+<li>Linux only for now.</li>
+<li>bubblewrap and user namespaces depend on kernel settings. When they are unavailable, veil refuses to start.</li>
+<li>Interactive TUIs (full-screen terminal interfaces) and signal handling have had little testing.</li>
+<li><code>veil doctor</code> looks for <code>bwrap</code> on the <code>PATH</code>, while <code>veil run</code> requires <code>/usr/bin/bwrap</code>.</li>
+<li>There is no IP rotation. The WARP exit address stays the same within a tunnel.</li>
+<li>Not tested yet: the first start with an empty <code>warp-data</code> volume, and resolving the gateway's <code>.local</code> name on Linux hosts without mDNS.</li>
+<li>veil has not had an external security review.</li>
+</ul>
+<p>Open problems and planned work are tracked in the <a href="https://github.com/joaaomanooel/veil/issues">issues</a>. Design decisions are recorded in <a href="https://github.com/joaaomanooel/veil/tree/main/docs"><code>docs/</code></a>.</p>
+</section>
+
+<section id="faq">
+<h2>FAQ</h2>
+<div class="card-stack">
+<div class="card">
+<h3>Does it work on macOS?</h3>
+<p>Not natively yet. <span class="badge badge-planned">Planned</span> A macOS Seatbelt backend that allows only the local proxy is planned; follow the <a href="https://github.com/joaaomanooel/veil/issues">issues</a>. Today, <code>veil run</code> refuses to start on macOS. You can run the Linux build of veil and of your tool inside a Linux virtual machine or container. The end-to-end test used Docker Desktop on a Mac.</p>
+</div>
+<div class="card">
+<h3>Does it rotate my IP?</h3>
+<p>No. The WARP exit address does not rotate. It stays the same within a tunnel, and accounts, prompts and code can still link your sessions.</p>
+</div>
+<div class="card">
+<h3>Does Cloudflare see my IP?</h3>
+<p>Yes. Cloudflare sees your home IP and the traffic metadata. veil hides your IP from the tool's vendor, not from Cloudflare.</p>
+</div>
+<div class="card">
+<h3>What happens if the gateway is down?</h3>
+<p>veil refuses to start. Before it runs the tool, it checks that it can reach the gateway, and it stops with <code>gateway unreachable: refusing execution</code> if it cannot. It never falls back to a direct connection.</p>
+</div>
+<div class="card">
+<h3>Can I use Claude Code or Codex?</h3>
+<p>Only if the tool honors <code>HTTPS_PROXY</code> and its domains are in the gateway allowlist. OpenCode is the only tool tested end to end. Follow the steps in <a href="run.html#other-tools">Using another tool</a>. A tool that ignores <code>HTTPS_PROXY</code> fails instead of leaking.</p>
+</div>
+</div>
+</section>
+
+<section id="contributing">
+<h2>Contributing and security</h2>
+<ul class="card-grid practice-grid">
+<li class="card">See <a href="https://github.com/joaaomanooel/veil/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a> to build, test and propose changes.</li>
+<li class="card">Report vulnerabilities privately as described in <a href="https://github.com/joaaomanooel/veil/blob/main/SECURITY.md">SECURITY.md</a>, never in a public issue.</li>
+</ul>
+</section>
+<nav class="pager" aria-label="Previous and next pages">
+<a class="pager-link pager-prev" href="security.html" rel="prev"><span class="pager-label">Previous</span> <span class="pager-title">Security</span></a>
+</nav>
+</main>
+</div>
+<footer class="site-footer">
+<div class="footer-inner">
+<p class="footer-brand"><img src="../favicon.svg" alt="" width="20" height="20">veil</p>
+<ul class="footer-links">
+<li><a href="https://github.com/joaaomanooel/veil">GitHub repository</a></li>
+<li><a href="https://github.com/joaaomanooel/veil/issues">Issues</a></li>
+<li><a href="https://github.com/joaaomanooel/veil/blob/main/SECURITY.md">Security policy</a> (report vulnerabilities <a href="https://github.com/joaaomanooel/veil/security/advisories/new">privately</a>, never in a public issue)</li>
+<li><a href="https://github.com/joaaomanooel/veil/blob/main/LICENSE">GPL-3.0 license</a></li>
+</ul>
+</div>
+</footer>
+<div id="announcer" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>
