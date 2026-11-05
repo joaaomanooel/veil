@@ -8,6 +8,15 @@ services:
     networks: [egress, socks]
     volumes:
       - tor-data:/var/lib/tor
+      - tor-control:/var/lib/tor-control
+  rotate:
+    image: veil-gateway-tor:local
+    restart: unless-stopped
+    network_mode: service:tor
+    depends_on: [tor]
+    volumes:
+      - tor-control:/var/lib/tor-control:ro
+    command: ["/bin/bash", "-c", "while sleep 1800; do /usr/local/bin/rotate.sh || true; done"]
 
   privoxy:
     build: ./privoxy
@@ -29,3 +38,4 @@ networks:
 
 volumes:
   tor-data: {}
+  tor-control: {}

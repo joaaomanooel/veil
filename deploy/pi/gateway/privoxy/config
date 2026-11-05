@@ -1,6 +1,6 @@
 confdir /etc/privoxy
 listen-address 0.0.0.0:8118
-permit-access 192.168.0.9
+permit-access 192.168.0.0/24
 forward-socks5t / tor:9050 .
 actionsfile allowlist.action
 toggle 1
