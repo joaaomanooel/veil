@@ -1,0 +1,52 @@
+name: Iniciativa (épico)
+description: Agrupa várias issues em torno de um objetivo. Cada parte vira uma sub-issue.
+labels: [epic]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Não cole IPs de casa, chaves, contas WARP, tokens ou outros dados pessoais. Use placeholders.
+
+        Depois de criar o épico, crie cada parte pelo botão **Create sub-issue**, ou ligue uma issue existente em **Add existing issue**.
+  - type: textarea
+    id: goal
+    attributes:
+      label: Objetivo
+      description: O que muda para quem usa o veil quando esta iniciativa terminar.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto
+      description: Por que agora, o que existe hoje e o que já foi tentado.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Escopo
+      description: As partes da iniciativa. Cada item vira uma sub-issue.
+      placeholder: |
+        - [ ] Backend macOS com Seatbelt
+        - [ ] Release de executáveis no GitHub Actions
+    validations:
+      required: true
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Fora do escopo
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Critério de conclusão
+      description: Como saber que a iniciativa terminou.
+    validations:
+      required: true
+  - type: textarea
+    id: artifacts
+    attributes:
+      label: Artefatos
+      description: Links para artifacts (páginas HTML, diagramas, documentos), ADRs, specs, PRs e pesquisas.

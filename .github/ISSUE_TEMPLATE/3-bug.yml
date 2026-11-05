@@ -1,0 +1,74 @@
+name: Bug
+description: Um comportamento errado do veil ou do gateway.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Não cole IPs de casa, chaves, contas WARP, tokens ou outros dados pessoais. Revise os logs antes de colar e troque esses dados por placeholders.
+  - type: input
+    id: parent
+    attributes:
+      label: Épico
+      description: O número do épico, se houver. Depois de criar, ligue esta issue como sub-issue dele.
+      placeholder: "#4"
+  - type: dropdown
+    id: component
+    attributes:
+      label: Componente
+      options:
+        - CLI
+        - Gateway
+        - CI ou release
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: O que aconteceu
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: O que era esperado
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Como reproduzir
+      placeholder: |
+        1. veil run --profile gateway --gateway server.local:8118 --workspace ~/projeto --home ~/vh -- opencode
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Ambiente
+      description: Sistema e arquitetura, versão do veil, perfil, versão do bwrap e hardware do gateway.
+      placeholder: Ubuntu 24.04 arm64, veil v0.1.0, perfil gateway, bwrap 0.9.0, Raspberry Pi 3B
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidência
+      description: Logs, saída de comandos e capturas, sem dados pessoais.
+      render: shell
+  - type: dropdown
+    id: privacy
+    attributes:
+      label: Impacto na privacidade
+      description: O bug pode ter exposto o IP de casa ou dados fora do workspace?
+      options:
+        - Não
+        - Sim
+        - Não sei
+    validations:
+      required: true
+  - type: textarea
+    id: artifacts
+    attributes:
+      label: Artefatos
+      description: Links para artifacts, capturas, PRs ou issues relacionadas.
