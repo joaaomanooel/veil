@@ -122,7 +122,7 @@
 </div>
 <p>Any other domain should print <code>403</code>:</p>
 <div class="code">
-<pre data-copy="blocked curl test" tabindex="0"><code>curl -sS -o /dev/null -w '%{http_code}\n' -x http://gateway.local:8118 https://example.com/</code></pre>
+<pre data-copy="blocked curl test" tabindex="0"><code>curl -s -o /dev/null -w '%{http_connect}\n' -x http://gateway.local:8118 https://example.com/</code></pre>
 </div>
 </li>
 </ol>
