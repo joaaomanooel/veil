@@ -1,7 +1,7 @@
 confdir /etc/privoxy
 listen-address 0.0.0.0:8118
-permit-access 192.168.0.9
-forward-socks5t / tor:9050 .
+permit-access 192.168.0.0/24
+forward-socks5t / 10.0.89.4:1080 .
 actionsfile allowlist.action
 toggle 1
 enable-remote-toggle 0

@@ -1,13 +1,34 @@
 name: veil-gateway
 
 services:
-  tor:
-    build: ./tor
-    image: veil-gateway-tor:local
-    restart: unless-stopped
-    networks: [egress, socks]
+  warp-init:
+    build: ./warp
+    image: veil-gateway-warp:local
+    command: ["warp-init"]
+    networks: [egress]
     volumes:
-      - tor-data:/var/lib/tor
+      - warp-data:/var/lib/warp
+
+  warp:
+    build: ./warp
+    image: veil-gateway-warp:local
+    restart: unless-stopped
+    depends_on:
+      warp-init:
+        condition: service_completed_successfully
+    networks:
+      egress: {}
+      socks:
+        ipv4_address: 10.0.89.4
+    volumes:
+      - warp-data:/var/lib/warp
+      - ./warp/resolv.conf:/etc/resolv.conf:ro
+    healthcheck:
+      test: ["CMD", "timeout", "15", "tunnel-check"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 30s
 
   privoxy:
     build: ./privoxy
@@ -15,8 +36,8 @@ services:
     restart: unless-stopped
     networks: [edge, socks]
     ports:
-      - "192.168.0.11:8118:8118"
-    depends_on: [tor]
+      - "0.0.0.0:8118:8118"
+    depends_on: [warp]
 
 networks:
   egress: {}
@@ -28,4 +49,4 @@ networks:
         - subnet: 10.0.89.0/29
 
 volumes:
-  tor-data: {}
+  warp-data: {}

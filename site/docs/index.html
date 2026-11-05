@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="What veil is, who it is for and how your traffic flows through it.">
+<title>Introduction - veil docs</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<script src="../theme.js"></script>
+<link rel="stylesheet" href="../core.css">
+<link rel="stylesheet" href="../docs.css">
+<script src="../app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="../index.html"><img src="../favicon.svg" alt="" width="24" height="24">veil</a>
+    <nav class="topnav" aria-label="Main">
+      <ul><li><a href="index.html" aria-current="page">Docs</a></li><li><a href="install.html">Guide</a></li><li><a href="security.html">Security</a></li><li><a href="faq.html">FAQ</a></li></ul>
+    </nav>
+    <div class="topbar-actions">
+      <a class="btn btn-ghost" href="https://github.com/joaaomanooel/veil">GitHub</a>
+      <button type="button" id="theme-toggle" class="btn btn-ghost" aria-pressed="false" hidden><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Dark theme</button>
+    </div>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="Documentation">
+  <button type="button" id="nav-toggle" class="btn nav-toggle" aria-expanded="false" aria-controls="nav-list">Menu<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+  <div id="nav-list" class="nav-list">
+    <p class="nav-group" id="ng-start">Start here</p>
+    <ol class="nav-pages" aria-labelledby="ng-start">
+      <li><a href="index.html" aria-current="page">Introduction</a>
+        <ul class="toc" aria-label="On this page">
+          <li><a href="#what">What veil is</a></li>
+          <li><a href="#who">Who it is for</a></li>
+          <li><a href="#flow">How your traffic flows</a></li>
+        </ul>
+      </li>
+      <li><a href="how-it-works.html">How it works</a></li>
+    </ol>
+    <p class="nav-group" id="ng-guide">Guide</p>
+    <ol class="nav-pages" aria-labelledby="ng-guide">
+      <li><a href="install.html"><span class="nav-step"><span class="visually-hidden">Step </span>1<span class="visually-hidden">:</span></span> Install</a></li>
+      <li><a href="gateway.html"><span class="nav-step"><span class="visually-hidden">Step </span>2<span class="visually-hidden">:</span></span> Set up the gateway</a></li>
+      <li><a href="run.html"><span class="nav-step"><span class="visually-hidden">Step </span>3<span class="visually-hidden">:</span></span> Run a tool</a></li>
+    </ol>
+    <p class="nav-group" id="ng-ref">Reference</p>
+    <ol class="nav-pages" aria-labelledby="ng-ref">
+      <li><a href="security.html">Security</a></li>
+      <li><a href="faq.html">Limitations and FAQ</a></li>
+    </ol>
+  </div>
+</nav>
+<main id="main" class="content" tabindex="-1">
+<div class="page-head">
+<p class="eyebrow">Start here</p>
+<h1 id="top">Introduction</h1>
+<p class="lead">What veil is, who it is for and how your traffic flows through it.</p>
+</div>
+<dl class="page-intro">
+<div><dt>What you will do</dt><dd>Learn what veil is, who it is for and how your traffic flows through it.</dd></div>
+<div><dt>Before you start</dt><dd>Nothing. This page needs no setup.</dd></div>
+<div><dt>What comes next</dt><dd>Read <a href="how-it-works.html">How it works</a>, then follow the three guide steps, starting with <a href="install.html">Install</a>.</dd></div>
+</dl>
+<div class="callout callout-warn">
+<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17h.01"/></svg>
+<p><strong>Status: experimental.</strong> This is not an anonymity tool, and it has not had an external security review. Read the <a href="security.html">threat model</a> and the <a href="faq.html#limitations">known limitations</a> before you rely on it.</p>
+</div>
+
+<section id="what">
+<h2>What veil is and why it exists</h2>
+<p>AI coding tools, such as OpenCode, send your prompts and code to their vendor's servers. Every request also tells the vendor your home IP address. Your IP address can point to where you live.</p>
+<p><code>veil</code> wraps any command. You run <code>veil run ... -- &lt;tool&gt;</code> when you want the extra privacy, and you run the tool directly otherwise.</p>
+<p>Inside veil, the tool runs in a <dfn>sandbox</dfn>: a closed box that can see only one project folder and has no network of its own. In the <code>gateway</code> profile, the only way out is a proxy that you host on your own network. A <dfn>proxy</dfn> is a server that makes connections on your behalf. Your proxy sends the traffic through Cloudflare WARP, so the vendor sees a Cloudflare address instead of yours. <dfn>WARP</dfn> is a free Cloudflare service, similar to a VPN, that carries your traffic in an encrypted tunnel and sends it out from a Cloudflare address.</p>
+<div class="callout callout-note">
+<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg>
+<p><strong>veil fails closed.</strong> If the gateway is missing, veil refuses to start the tool. It never falls back to a direct connection. If a safeguard is unavailable, veil refuses to run instead of running the tool without isolation.</p>
+</div>
+</section>
+
+<section id="who">
+<h2>Who it is for</h2>
+<p>veil is for people who use an AI coding tool and do not want the tool's vendor to see their home IP address. OpenCode is the first tool tested end to end, and the examples use it. Any command-line tool that honors the <code>HTTPS_PROXY</code> environment variable can work the same way.</p>
+<p>veil runs on Linux today. See <a href="how-it-works.html#platforms">Platforms</a> for macOS and Windows.</p>
+</section>
+
+<section id="flow">
+<h2>How your traffic flows</h2>
+<figure class="diagram">
+<div class="diagram-art">
+<svg viewBox="0 0 360 700" role="img" aria-labelledby="diagram-title" aria-describedby="diagram-desc" focusable="false">
+  <title id="diagram-title">Network flow of veil in the gateway profile</title>
+  <desc id="diagram-desc">The tool talks to a bridge inside the sandbox. The bridge forwards through a unix socket to veil on the host. veil connects over TCP to the gateway, where Privoxy checks the allowlist, wireproxy carries the traffic into the Cloudflare WARP tunnel, and WARP sends it to the vendor. The same steps are listed as text next to the diagram.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" class="d-arrowhead"/>
+    </marker>
+  </defs>
+  <rect x="8" y="8" width="344" height="200" rx="12" class="d-group"/>
+  <text x="20" y="30" class="d-group-label">Sandbox (bubblewrap, no network)</text>
+  <rect x="40" y="44" width="280" height="54" rx="8" class="d-box"/>
+  <text x="180" y="67" class="d-title">AI tool</text>
+  <text x="180" y="86" class="d-sub">uses HTTPS_PROXY</text>
+  <line x1="180" y1="98" x2="180" y2="132" class="d-line" marker-end="url(#arrow)"/>
+  <rect x="40" y="136" width="280" height="54" rx="8" class="d-box"/>
+  <text x="180" y="159" class="d-title">In-sandbox bridge</text>
+  <text x="180" y="178" class="d-sub">veil at 127.0.0.1:8118</text>
+  <line x1="180" y1="190" x2="180" y2="232" class="d-line" marker-end="url(#arrow)"/>
+  <rect x="40" y="236" width="280" height="54" rx="8" class="d-box"/>
+  <text x="180" y="259" class="d-title">Unix socket</text>
+  <text x="180" y="278" class="d-sub">/run/veil/proxy.sock</text>
+  <line x1="180" y1="290" x2="180" y2="318" class="d-line" marker-end="url(#arrow)"/>
+  <rect x="40" y="322" width="280" height="54" rx="8" class="d-box"/>
+  <text x="180" y="345" class="d-title">veil on the host</text>
+  <text x="180" y="364" class="d-sub">connects over TCP</text>
+  <line x1="180" y1="376" x2="180" y2="418" class="d-line" marker-end="url(#arrow)"/>
+  <rect x="8" y="404" width="344" height="196" rx="12" class="d-group"/>
+  <text x="20" y="426" class="d-group-label">Gateway (Docker on your LAN)</text>
+  <rect x="40" y="436" width="280" height="40" rx="8" class="d-box"/>
+  <text x="180" y="461" class="d-title">Privoxy: domain allowlist</text>
+  <line x1="180" y1="476" x2="180" y2="492" class="d-line" marker-end="url(#arrow)"/>
+  <rect x="40" y="496" width="280" height="40" rx="8" class="d-box"/>
+  <text x="180" y="521" class="d-title">wireproxy (SOCKS5)</text>
+  <line x1="180" y1="536" x2="180" y2="552" class="d-line" marker-end="url(#arrow)"/>
+  <rect x="40" y="556" width="280" height="36" rx="8" class="d-box"/>
+  <text x="180" y="579" class="d-title">Cloudflare WARP tunnel</text>
+  <line x1="180" y1="600" x2="180" y2="634" class="d-line" marker-end="url(#arrow)"/>
+  <rect x="40" y="638" width="280" height="54" rx="8" class="d-box d-end"/>
+  <text x="180" y="661" class="d-title">Tool vendor</text>
+  <text x="180" y="680" class="d-sub">sees a Cloudflare address</text>
+</svg>
+</div>
+<figcaption>
+<p class="figcaption-title">Text version of the diagram:</p>
+<ol class="steps">
+<li>The AI tool runs inside the sandbox and sends its traffic to the proxy named in <code>HTTPS_PROXY</code>.</li>
+<li>A copy of <code>veil</code> inside the sandbox, the bridge, listens on <code>127.0.0.1:8118</code>.</li>
+<li>The bridge forwards the traffic through a unix socket, <code>/run/veil/proxy.sock</code>.</li>
+<li><code>veil</code> on the host receives it and opens a TCP connection to the gateway.</li>
+<li>On the gateway, Privoxy allows only the listed domains, wireproxy carries them into the Cloudflare WARP tunnel, and WARP sends them to the vendor.</li>
+</ol>
+</figcaption>
+</figure>
+<div class="cta">
+<p>Ready to try it? The guide has three steps: install veil, set up the gateway and run a tool.</p>
+<a class="btn btn-primary" href="install.html">Start the guide</a>
+</div>
+</section>
+<nav class="pager" aria-label="Previous and next pages">
+<a class="pager-link pager-next" href="how-it-works.html" rel="next"><span class="pager-label">Next</span> <span class="pager-title">How it works</span></a>
+</nav>
+</main>
+</div>
+<footer class="site-footer">
+<div class="footer-inner">
+<p class="footer-brand"><img src="../favicon.svg" alt="" width="20" height="20">veil</p>
+<ul class="footer-links">
+<li><a href="https://github.com/joaaomanooel/veil">GitHub repository</a></li>
+<li><a href="https://github.com/joaaomanooel/veil/issues">Issues</a></li>
+<li><a href="https://github.com/joaaomanooel/veil/blob/main/SECURITY.md">Security policy</a> (report vulnerabilities <a href="https://github.com/joaaomanooel/veil/security/advisories/new">privately</a>, never in a public issue)</li>
+<li><a href="https://github.com/joaaomanooel/veil/blob/main/LICENSE">GPL-3.0 license</a></li>
+</ul>
+</div>
+</footer>
+<div id="announcer" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

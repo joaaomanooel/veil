@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="Set up the allowlisting gateway that sends traffic through Cloudflare WARP.">
+<title>Step 2: Set up the gateway - veil</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<script src="../theme.js"></script>
+<link rel="stylesheet" href="../core.css">
+<link rel="stylesheet" href="../docs.css">
+<script src="../app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="../index.html"><img src="../favicon.svg" alt="" width="24" height="24">veil</a>
+    <nav class="topnav" aria-label="Main">
+      <ul><li><a href="index.html">Docs</a></li><li><a href="install.html" class="is-active">Guide</a></li><li><a href="security.html">Security</a></li><li><a href="faq.html">FAQ</a></li></ul>
+    </nav>
+    <div class="topbar-actions">
+      <a class="btn btn-ghost" href="https://github.com/joaaomanooel/veil">GitHub</a>
+      <button type="button" id="theme-toggle" class="btn btn-ghost" aria-pressed="false" hidden><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Dark theme</button>
+    </div>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="Documentation">
+  <button type="button" id="nav-toggle" class="btn nav-toggle" aria-expanded="false" aria-controls="nav-list">Menu<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+  <div id="nav-list" class="nav-list">
+    <p class="nav-group" id="ng-start">Start here</p>
+    <ol class="nav-pages" aria-labelledby="ng-start">
+      <li><a href="index.html">Introduction</a></li>
+      <li><a href="how-it-works.html">How it works</a></li>
+    </ol>
+    <p class="nav-group" id="ng-guide">Guide</p>
+    <ol class="nav-pages" aria-labelledby="ng-guide">
+      <li><a href="install.html"><span class="nav-step is-done"><span class="visually-hidden">Step </span>1<span class="visually-hidden">:</span></span> Install</a></li>
+      <li><a href="gateway.html" aria-current="page"><span class="nav-step is-current"><span class="visually-hidden">Step </span>2<span class="visually-hidden">:</span></span> Set up the gateway</a>
+        <ul class="toc" aria-label="On this page">
+          <li><a href="#stack">The stack</a></li>
+          <li><a href="#setup">Configure, start and test</a></li>
+          <li><a href="#key">Protect the WARP key</a></li>
+        </ul>
+      </li>
+      <li><a href="run.html"><span class="nav-step"><span class="visually-hidden">Step </span>3<span class="visually-hidden">:</span></span> Run a tool</a></li>
+    </ol>
+    <p class="nav-group" id="ng-ref">Reference</p>
+    <ol class="nav-pages" aria-labelledby="ng-ref">
+      <li><a href="security.html">Security</a></li>
+      <li><a href="faq.html">Limitations and FAQ</a></li>
+    </ol>
+  </div>
+</nav>
+<main id="main" class="content" tabindex="-1">
+<div class="page-head">
+<p class="eyebrow">Step 2 of 3</p>
+<div class="progress" aria-hidden="true"><span class="is-done"></span><span class="is-done"></span><span class=""></span></div>
+<h1 id="top">Set up the gateway</h1>
+<p class="lead">The gateway is the only way out of the sandbox in the <code>gateway</code> profile.</p>
+</div>
+<dl class="page-intro">
+<div><dt>What you will do</dt><dd>Start the gateway stack on a Docker host in your local network, and test that it allows only the listed domains.</dd></div>
+<div><dt>Before you start</dt><dd>A machine on your local network that runs Docker, and a clone of the repository from <a href="install.html">Step 1</a>.</dd></div>
+<div><dt>What comes next</dt><dd>Step 3: <a href="run.html">run a tool</a> through the gateway.</dd></div>
+</dl>
+
+<div class="callout callout-warn" role="note" aria-labelledby="warn-h">
+<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17h.01"/></svg>
+<div>
+<p id="warn-h" class="callout-title">Warning: no client authentication</p>
+<p>The gateway has no client authentication yet. Anyone who can reach port 8118 can use it. Run it only on a network you trust, and <strong>never publish port 8118 to the internet</strong>.</p>
+<p><span class="badge badge-planned">Planned</span> Client authentication with mTLS (mutual TLS, where the client also proves its identity with a certificate) is tracked in <a href="https://github.com/joaaomanooel/veil/issues/2">issue #2</a>.</p>
+</div>
+</div>
+
+<section id="stack">
+<h2>The stack</h2>
+<p>The stack in <code>deploy/pi/gateway</code> runs on any Docker host on your local network. It has been tested on a Raspberry Pi 3B with Ubuntu 24.04 arm64. The images build from pinned sources on the host itself.</p>
+<div class="table-scroll" tabindex="0" role="group" aria-label="Gateway services">
+<table>
+<caption>Gateway services</caption>
+<thead><tr><th scope="col">Service</th><th scope="col">Role</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code>warp-init</code></th><td>Registers a WARP device on first start. The account stays in the <code>warp-data</code> volume.</td></tr>
+<tr><th scope="row"><code>warp</code></th><td>Runs wireproxy, the WARP WireGuard tunnel exposed as SOCKS5 on an internal network. SOCKS5 is a general-purpose proxy protocol. It also runs a watchdog that restarts the tunnel when it stops answering.</td></tr>
+<tr><th scope="row"><code>privoxy</code></th><td>Listens on port 8118, allows only the listed domains and answers <code>403</code> to everything else.</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section id="setup">
+<h2>Configure, start and test</h2>
+<ol class="steps steps-long">
+<li>
+<p>Go to the gateway directory in your clone of the repository:</p>
+<div class="code">
+<pre data-copy="cd command" tabindex="0"><code>cd deploy/pi/gateway</code></pre>
+</div>
+</li>
+<li>
+<p>Before the first start, edit two files:</p>
+<ul>
+<li><code>privoxy/config</code>: set <code>permit-access</code> to your local subnet. The example uses <code>192.168.0.0/24</code>.</li>
+<li><code>privoxy/allowlist.action</code>: list your tool's domains as <code>.example.com:443</code>. The default allows only <code>.opencode.ai:443</code>.</li>
+</ul>
+</li>
+<li>
+<p>Start the stack:</p>
+<div class="code">
+<pre data-copy="start command" tabindex="0"><code>docker compose up -d --build</code></pre>
+</div>
+</li>
+<li>
+<p>Test it from a client. An allowlisted domain should print <code>200</code>:</p>
+<div class="code">
+<pre data-copy="allowlisted curl test" tabindex="0"><code>curl -sS -o /dev/null -w '%{http_code}\n' -x http://gateway.local:8118 https://opencode.ai/</code></pre>
+</div>
+<p>Any other domain should print <code>403</code>:</p>
+<div class="code">
+<pre data-copy="blocked curl test" tabindex="0"><code>curl -sS -o /dev/null -w '%{http_code}\n' -x http://gateway.local:8118 https://example.com/</code></pre>
+</div>
+</li>
+</ol>
+</section>
+
+<section id="key">
+<h2>Protect the WARP key</h2>
+<div class="callout callout-warn">
+<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17h.01"/></svg>
+<p>Never copy, print or commit the contents of the <code>warp-data</code> volume. It holds the WARP private key.</p>
+</div>
+</section>
+<nav class="pager" aria-label="Previous and next pages">
+<a class="pager-link pager-prev" href="install.html" rel="prev"><span class="pager-label">Previous</span> <span class="pager-title">Install</span></a>
+<a class="pager-link pager-next" href="run.html" rel="next"><span class="pager-label">Next</span> <span class="pager-title">Run a tool</span></a>
+</nav>
+</main>
+</div>
+<footer class="site-footer">
+<div class="footer-inner">
+<p class="footer-brand"><img src="../favicon.svg" alt="" width="20" height="20">veil</p>
+<ul class="footer-links">
+<li><a href="https://github.com/joaaomanooel/veil">GitHub repository</a></li>
+<li><a href="https://github.com/joaaomanooel/veil/issues">Issues</a></li>
+<li><a href="https://github.com/joaaomanooel/veil/blob/main/SECURITY.md">Security policy</a> (report vulnerabilities <a href="https://github.com/joaaomanooel/veil/security/advisories/new">privately</a>, never in a public issue)</li>
+<li><a href="https://github.com/joaaomanooel/veil/blob/main/LICENSE">GPL-3.0 license</a></li>
+</ul>
+</div>
+</footer>
+<div id="announcer" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

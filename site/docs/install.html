@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="Build veil from source and check your system with veil doctor.">
+<title>Step 1: Install - veil</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<script src="../theme.js"></script>
+<link rel="stylesheet" href="../core.css">
+<link rel="stylesheet" href="../docs.css">
+<script src="../app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="../index.html"><img src="../favicon.svg" alt="" width="24" height="24">veil</a>
+    <nav class="topnav" aria-label="Main">
+      <ul><li><a href="index.html">Docs</a></li><li><a href="install.html" aria-current="page">Guide</a></li><li><a href="security.html">Security</a></li><li><a href="faq.html">FAQ</a></li></ul>
+    </nav>
+    <div class="topbar-actions">
+      <a class="btn btn-ghost" href="https://github.com/joaaomanooel/veil">GitHub</a>
+      <button type="button" id="theme-toggle" class="btn btn-ghost" aria-pressed="false" hidden><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Dark theme</button>
+    </div>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="Documentation">
+  <button type="button" id="nav-toggle" class="btn nav-toggle" aria-expanded="false" aria-controls="nav-list">Menu<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+  <div id="nav-list" class="nav-list">
+    <p class="nav-group" id="ng-start">Start here</p>
+    <ol class="nav-pages" aria-labelledby="ng-start">
+      <li><a href="index.html">Introduction</a></li>
+      <li><a href="how-it-works.html">How it works</a></li>
+    </ol>
+    <p class="nav-group" id="ng-guide">Guide</p>
+    <ol class="nav-pages" aria-labelledby="ng-guide">
+      <li><a href="install.html" aria-current="page"><span class="nav-step is-current"><span class="visually-hidden">Step </span>1<span class="visually-hidden">:</span></span> Install</a></li>
+      <li><a href="gateway.html"><span class="nav-step"><span class="visually-hidden">Step </span>2<span class="visually-hidden">:</span></span> Set up the gateway</a></li>
+      <li><a href="run.html"><span class="nav-step"><span class="visually-hidden">Step </span>3<span class="visually-hidden">:</span></span> Run a tool</a></li>
+    </ol>
+    <p class="nav-group" id="ng-ref">Reference</p>
+    <ol class="nav-pages" aria-labelledby="ng-ref">
+      <li><a href="security.html">Security</a></li>
+      <li><a href="faq.html">Limitations and FAQ</a></li>
+    </ol>
+  </div>
+</nav>
+<main id="main" class="content" tabindex="-1">
+<div class="page-head">
+<p class="eyebrow">Step 1 of 3</p>
+<div class="progress" aria-hidden="true"><span class="is-done"></span><span class=""></span><span class=""></span></div>
+<h1 id="top">Install veil</h1>
+<p class="lead">Build veil from source and check your system.</p>
+</div>
+<dl class="page-intro">
+<div><dt>What you will do</dt><dd>Build the veil binary from source and run <code>veil doctor</code>.</dd></div>
+<div><dt>Before you start</dt><dd>A Linux machine that meets the requirements below. On other systems, use a Linux virtual machine or container.</dd></div>
+<div><dt>What comes next</dt><dd>Step 2: <a href="gateway.html">set up the gateway</a>.</dd></div>
+</dl>
+
+<section id="requirements">
+<h2>Requirements</h2>
+<ul class="card checklist">
+<li>Go 1.22 or later.</li>
+<li>Linux with <code>bwrap</code> installed at <code>/usr/bin/bwrap</code>.</li>
+<li>Unprivileged user namespaces enabled.</li>
+</ul>
+</section>
+
+<section id="build">
+<h2>Build from source</h2>
+<div class="code">
+<pre data-copy="build commands" tabindex="0"><code>git clone https://github.com/joaaomanooel/veil.git
+cd veil
+CGO_ENABLED=0 go build -o veil ./cmd/veil
+./veil doctor</code></pre>
+</div>
+<p>Build with <code>CGO_ENABLED=0</code>, because the same static binary also runs inside the sandbox. <code>veil doctor</code> reports whether <code>bwrap</code> and <code>opencode</code> are on the <code>PATH</code>. It runs nothing and reads no credentials.</p>
+<div class="callout callout-warn">
+<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17h.01"/></svg>
+<p>Never run veil with <code>sudo</code>.</p>
+</div>
+</section>
+<nav class="pager" aria-label="Previous and next pages">
+<a class="pager-link pager-prev" href="how-it-works.html" rel="prev"><span class="pager-label">Previous</span> <span class="pager-title">How it works</span></a>
+<a class="pager-link pager-next" href="gateway.html" rel="next"><span class="pager-label">Next</span> <span class="pager-title">Set up the gateway</span></a>
+</nav>
+</main>
+</div>
+<footer class="site-footer">
+<div class="footer-inner">
+<p class="footer-brand"><img src="../favicon.svg" alt="" width="20" height="20">veil</p>
+<ul class="footer-links">
+<li><a href="https://github.com/joaaomanooel/veil">GitHub repository</a></li>
+<li><a href="https://github.com/joaaomanooel/veil/issues">Issues</a></li>
+<li><a href="https://github.com/joaaomanooel/veil/blob/main/SECURITY.md">Security policy</a> (report vulnerabilities <a href="https://github.com/joaaomanooel/veil/security/advisories/new">privately</a>, never in a public issue)</li>
+<li><a href="https://github.com/joaaomanooel/veil/blob/main/LICENSE">GPL-3.0 license</a></li>
+</ul>
+</div>
+</footer>
+<div id="announcer" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

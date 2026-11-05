@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="The sandbox, the bridge and the gateway that veil uses, and the platforms it supports.">
+<title>How it works - veil</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<script src="../theme.js"></script>
+<link rel="stylesheet" href="../core.css">
+<link rel="stylesheet" href="../docs.css">
+<script src="../app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="../index.html"><img src="../favicon.svg" alt="" width="24" height="24">veil</a>
+    <nav class="topnav" aria-label="Main">
+      <ul><li><a href="index.html" class="is-active">Docs</a></li><li><a href="install.html">Guide</a></li><li><a href="security.html">Security</a></li><li><a href="faq.html">FAQ</a></li></ul>
+    </nav>
+    <div class="topbar-actions">
+      <a class="btn btn-ghost" href="https://github.com/joaaomanooel/veil">GitHub</a>
+      <button type="button" id="theme-toggle" class="btn btn-ghost" aria-pressed="false" hidden><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Dark theme</button>
+    </div>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="Documentation">
+  <button type="button" id="nav-toggle" class="btn nav-toggle" aria-expanded="false" aria-controls="nav-list">Menu<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+  <div id="nav-list" class="nav-list">
+    <p class="nav-group" id="ng-start">Start here</p>
+    <ol class="nav-pages" aria-labelledby="ng-start">
+      <li><a href="index.html">Introduction</a></li>
+      <li><a href="how-it-works.html" aria-current="page">How it works</a>
+        <ul class="toc" aria-label="On this page">
+          <li><a href="#sandbox">The sandbox</a></li>
+          <li><a href="#bridge">The bridge</a></li>
+          <li><a href="#gateway">The gateway</a></li>
+          <li><a href="#platforms">Platforms</a></li>
+        </ul>
+      </li>
+    </ol>
+    <p class="nav-group" id="ng-guide">Guide</p>
+    <ol class="nav-pages" aria-labelledby="ng-guide">
+      <li><a href="install.html"><span class="nav-step"><span class="visually-hidden">Step </span>1<span class="visually-hidden">:</span></span> Install</a></li>
+      <li><a href="gateway.html"><span class="nav-step"><span class="visually-hidden">Step </span>2<span class="visually-hidden">:</span></span> Set up the gateway</a></li>
+      <li><a href="run.html"><span class="nav-step"><span class="visually-hidden">Step </span>3<span class="visually-hidden">:</span></span> Run a tool</a></li>
+    </ol>
+    <p class="nav-group" id="ng-ref">Reference</p>
+    <ol class="nav-pages" aria-labelledby="ng-ref">
+      <li><a href="security.html">Security</a></li>
+      <li><a href="faq.html">Limitations and FAQ</a></li>
+    </ol>
+  </div>
+</nav>
+<main id="main" class="content" tabindex="-1">
+<div class="page-head">
+<p class="eyebrow">Start here</p>
+<h1 id="top">How it works</h1>
+<p class="lead">veil combines a Linux sandbox, a bridge inside the sandbox and a gateway on your local network.</p>
+</div>
+<dl class="page-intro">
+<div><dt>What you will do</dt><dd>See the three parts of veil and which platforms it runs on.</dd></div>
+<div><dt>Before you start</dt><dd>Read the <a href="index.html">Introduction</a> and its traffic diagram.</dd></div>
+<div><dt>What comes next</dt><dd>Step 1: <a href="install.html">Install veil</a>.</dd></div>
+</dl>
+
+<section id="sandbox">
+<h2>The sandbox</h2>
+<p>On Linux, veil uses <a href="https://github.com/containers/bubblewrap">bubblewrap</a> (<code>bwrap</code>), a small program that starts a process in its own namespaces. A <dfn>namespace</dfn> is a Linux kernel feature that gives a process a private view of one part of the system, such as the network, the file system, the process list or the host name. veil unshares all namespaces, so the tool gets an empty network with no way out, and it clears the environment variables.</p>
+<p>veil mounts the system directories read-only, one workspace read-write at <code>/workspace</code>, and an empty or dedicated <code>HOME</code>.</p>
+</section>
+
+<section id="bridge">
+<h2>The bridge</h2>
+<p>The sandbox sees only a <dfn>unix socket</dfn>, which is a file that two programs on the same machine use to talk to each other. A copy of veil inside the sandbox exposes this socket as <code>127.0.0.1:8118</code>. It sets <code>HTTP_PROXY</code>, <code>HTTPS_PROXY</code> and <code>NO_PROXY=127.0.0.1,localhost</code>, so the tool sends its traffic there.</p>
+</section>
+
+<section id="gateway">
+<h2>The gateway</h2>
+<p>The gateway is a Docker Compose stack on a machine in your local network. It allows only the domains that you list in an <dfn>allowlist</dfn>: a list of the only destinations that are allowed, where everything else is blocked. It sends the allowed traffic through a WARP <dfn>WireGuard</dfn> tunnel. WireGuard is the encrypted VPN protocol that WARP uses. DNS, the lookup that turns a name such as <code>opencode.ai</code> into an address, is resolved inside the tunnel, never by the client.</p>
+<p>You set it up in <a href="gateway.html">Step 2</a>.</p>
+</section>
+
+<section id="platforms">
+<h2>Platforms</h2>
+<ul class="card-grid">
+<li class="card platform">
+<h3>Linux</h3>
+<p><span class="badge badge-ok">Supported</span></p>
+<p>With bubblewrap and unprivileged user namespaces. Tested end to end on arm64.</p>
+</li>
+<li class="card platform">
+<h3>macOS</h3>
+<p><span class="badge badge-planned">Planned</span></p>
+<p>A Seatbelt backend that allows only the local proxy. Track it in the <a href="https://github.com/joaaomanooel/veil/issues">issues</a>.</p>
+</li>
+<li class="card platform">
+<h3>Windows</h3>
+<p><span class="badge badge-no">Not supported</span></p>
+<p>See <a href="https://github.com/joaaomanooel/veil/issues/3">issue #3</a>.</p>
+</li>
+</ul>
+<p>On other systems, <code>veil run</code> refuses to start. You can still run the Linux build of veil and of your tool inside a Linux virtual machine or container.</p>
+</section>
+<nav class="pager" aria-label="Previous and next pages">
+<a class="pager-link pager-prev" href="index.html" rel="prev"><span class="pager-label">Previous</span> <span class="pager-title">Introduction</span></a>
+<a class="pager-link pager-next" href="install.html" rel="next"><span class="pager-label">Next</span> <span class="pager-title">Install</span></a>
+</nav>
+</main>
+</div>
+<footer class="site-footer">
+<div class="footer-inner">
+<p class="footer-brand"><img src="../favicon.svg" alt="" width="20" height="20">veil</p>
+<ul class="footer-links">
+<li><a href="https://github.com/joaaomanooel/veil">GitHub repository</a></li>
+<li><a href="https://github.com/joaaomanooel/veil/issues">Issues</a></li>
+<li><a href="https://github.com/joaaomanooel/veil/blob/main/SECURITY.md">Security policy</a> (report vulnerabilities <a href="https://github.com/joaaomanooel/veil/security/advisories/new">privately</a>, never in a public issue)</li>
+<li><a href="https://github.com/joaaomanooel/veil/blob/main/LICENSE">GPL-3.0 license</a></li>
+</ul>
+</div>
+</footer>
+<div id="announcer" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

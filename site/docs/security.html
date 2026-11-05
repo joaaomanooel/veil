@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="What veil protects against, what it does not, and how to use it safely.">
+<title>Threat model and best practices - veil</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<script src="../theme.js"></script>
+<link rel="stylesheet" href="../core.css">
+<link rel="stylesheet" href="../docs.css">
+<script src="../app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="../index.html"><img src="../favicon.svg" alt="" width="24" height="24">veil</a>
+    <nav class="topnav" aria-label="Main">
+      <ul><li><a href="index.html">Docs</a></li><li><a href="install.html">Guide</a></li><li><a href="security.html" aria-current="page">Security</a></li><li><a href="faq.html">FAQ</a></li></ul>
+    </nav>
+    <div class="topbar-actions">
+      <a class="btn btn-ghost" href="https://github.com/joaaomanooel/veil">GitHub</a>
+      <button type="button" id="theme-toggle" class="btn btn-ghost" aria-pressed="false" hidden><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Dark theme</button>
+    </div>
+  </div>
+</header>
+<div class="layout">
+<nav class="sidebar" aria-label="Documentation">
+  <button type="button" id="nav-toggle" class="btn nav-toggle" aria-expanded="false" aria-controls="nav-list">Menu<svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
+  <div id="nav-list" class="nav-list">
+    <p class="nav-group" id="ng-start">Start here</p>
+    <ol class="nav-pages" aria-labelledby="ng-start">
+      <li><a href="index.html">Introduction</a></li>
+      <li><a href="how-it-works.html">How it works</a></li>
+    </ol>
+    <p class="nav-group" id="ng-guide">Guide</p>
+    <ol class="nav-pages" aria-labelledby="ng-guide">
+      <li><a href="install.html"><span class="nav-step"><span class="visually-hidden">Step </span>1<span class="visually-hidden">:</span></span> Install</a></li>
+      <li><a href="gateway.html"><span class="nav-step"><span class="visually-hidden">Step </span>2<span class="visually-hidden">:</span></span> Set up the gateway</a></li>
+      <li><a href="run.html"><span class="nav-step"><span class="visually-hidden">Step </span>3<span class="visually-hidden">:</span></span> Run a tool</a></li>
+    </ol>
+    <p class="nav-group" id="ng-ref">Reference</p>
+    <ol class="nav-pages" aria-labelledby="ng-ref">
+      <li><a href="security.html" aria-current="page">Security</a>
+        <ul class="toc" aria-label="On this page">
+          <li><a href="#threat-model">Threat model</a></li>
+          <li><a href="#practices">Best practices</a></li>
+        </ul>
+      </li>
+      <li><a href="faq.html">Limitations and FAQ</a></li>
+    </ol>
+  </div>
+</nav>
+<main id="main" class="content" tabindex="-1">
+<div class="page-head">
+<p class="eyebrow">Reference</p>
+<h1 id="top">Threat model and best practices</h1>
+<p class="lead">What veil protects against, what it does not, and how to use it safely.</p>
+</div>
+<dl class="page-intro">
+<div><dt>What you will do</dt><dd>Check the limits of veil before you rely on it, and follow the practices that keep it safe.</dd></div>
+<div><dt>Before you start</dt><dd>It helps to know <a href="how-it-works.html">how it works</a>.</dd></div>
+<div><dt>What comes next</dt><dd>The <a href="faq.html">known limitations and FAQ</a>.</dd></div>
+</dl>
+
+<section id="threat-model">
+<h2>Threat model</h2>
+<div class="threat-grid">
+<div class="card threat threat-yes">
+<h3><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6l-8-3z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>Protects against</h3>
+<ul>
+<li>The tool's vendor seeing your home IP. The vendor sees a Cloudflare WARP address instead.</li>
+<li>The tool reaching any host outside the allowlist. When the gateway is down, the tool has no network.</li>
+<li>The tool reading or writing host files outside the workspace and the dedicated home.</li>
+<li>The tool inheriting your environment, such as API tokens, <code>SSH_AUTH_SOCK</code> or proxy variables.</li>
+</ul>
+</div>
+<div class="card threat threat-no">
+<h3><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m6 6 12 12"/></svg>Does not protect against</h3>
+<ul>
+<li><strong>Cloudflare.</strong> Cloudflare sees your home IP and the traffic metadata.</li>
+<li><strong>Linking sessions.</strong> Accounts, prompts, code and behavior can still link your sessions. The WARP exit address does not rotate.</li>
+<li><strong>Your local network.</strong> Anyone on your local network can use or impersonate the gateway until <a href="https://github.com/joaaomanooel/veil/issues/2">issue #2</a> is done.</li>
+<li><strong>Kernel exploits, a compromised host or privileged processes.</strong></li>
+<li><strong>Files left in the workspace.</strong> Anything you put in the workspace is visible to the tool. A file the tool writes there, such as <code>.git/hooks/*</code>, <code>Makefile</code> or <code>.envrc</code>, runs on the host if you execute it later.</li>
+</ul>
+</div>
+</div>
+</section>
+
+<section id="practices">
+<h2>Best practices</h2>
+<ul class="card-grid practice-grid">
+<li class="card">Use a disposable or dedicated workspace, and keep secrets out of it. The tool can read everything in the workspace.</li>
+<li class="card">Use one <code>--home</code> directory per tool, so each tool's login and state stay apart.</li>
+<li class="card">Never run veil with <code>sudo</code>.</li>
+<li class="card">Review the files the tool wrote, such as <code>.git/hooks</code>, <code>Makefile</code> and <code>.envrc</code>, before you run them on the host.</li>
+<li class="card">Never share, copy, print or commit the <code>warp-data</code> volume. It holds the WARP private key.</li>
+<li class="card">Keep the gateway on a trusted local network (LAN), and never publish port 8118 to the internet.</li>
+<li class="card">Do not paste real IP addresses, keys, tokens or WARP account files into issues. Use placeholders such as <code>gateway.local</code> and <code>192.168.0.0/24</code>.</li>
+</ul>
+</section>
+<nav class="pager" aria-label="Previous and next pages">
+<a class="pager-link pager-prev" href="run.html" rel="prev"><span class="pager-label">Previous</span> <span class="pager-title">Run a tool</span></a>
+<a class="pager-link pager-next" href="faq.html" rel="next"><span class="pager-label">Next</span> <span class="pager-title">Limitations and FAQ</span></a>
+</nav>
+</main>
+</div>
+<footer class="site-footer">
+<div class="footer-inner">
+<p class="footer-brand"><img src="../favicon.svg" alt="" width="20" height="20">veil</p>
+<ul class="footer-links">
+<li><a href="https://github.com/joaaomanooel/veil">GitHub repository</a></li>
+<li><a href="https://github.com/joaaomanooel/veil/issues">Issues</a></li>
+<li><a href="https://github.com/joaaomanooel/veil/blob/main/SECURITY.md">Security policy</a> (report vulnerabilities <a href="https://github.com/joaaomanooel/veil/security/advisories/new">privately</a>, never in a public issue)</li>
+<li><a href="https://github.com/joaaomanooel/veil/blob/main/LICENSE">GPL-3.0 license</a></li>
+</ul>
+</div>
+</footer>
+<div id="announcer" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

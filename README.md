@@ -1,54 +1,148 @@
-# Veil — OpenCode isolation experiment (MVP 0)
+# veil
 
-Initial experimental security harness written in Go. **Not a production anonymity tool.** It runs a command in a **Linux-only** bubblewrap sandbox, either fully offline or with a single egress path through an allowlisted proxy (the Raspberry Pi Tor gateway in `deploy/pi/gateway`). The macOS backend, credentials management, and IP rotation **are not implemented**.
+`veil` runs an AI coding CLI in a sandbox, so the tool's vendor does not see your home IP address and the tool only sees the files you choose. It wraps any command: you run `veil run ... -- <tool>` when you want the extra privacy, and run the tool directly otherwise.
 
-## Requirements
-- Go 1.22+
-- Linux with user namespaces enabled and `bubblewrap` (`bwrap`) installed
-- An existing, dedicated non-sensitive project directory
+The sandbox has no network of its own. In the `gateway` profile, its only way out is an allowlisting proxy that you host. The proxy sends traffic through Cloudflare WARP, so the vendor sees a Cloudflare address instead of yours. If the gateway is missing, `veil` refuses to start the tool. It never falls back to a direct connection.
 
-## Build / test
+OpenCode is the first tool tested end to end, and the examples below use it. Any CLI that honors `HTTPS_PROXY` can work the same way.
+
+> **Status: experimental.** This is not an anonymity tool, and it has not had an external security review. Read [Threat model](#threat-model) and [Known limitations](#known-limitations) before relying on it.
+
+## How it works
+
+```
+host                                   sandbox (bubblewrap, no network)
+veil run ──bind──> /run/veil/proxy.sock <── veil bridge 127.0.0.1:8118 <── tool (HTTPS_PROXY)
+   │
+   └── TCP ──> gateway: Privoxy (domain allowlist) ──> wireproxy (SOCKS) ──> Cloudflare WARP ──> vendor
+```
+
+- **Linux sandbox.** `veil` uses [bubblewrap](https://github.com/containers/bubblewrap) to unshare all namespaces and clear the environment. It mounts the system directories read-only, one workspace read-write at `/workspace`, and an empty or dedicated `HOME`.
+- **Bridge.** The sandbox sees only a unix socket. A copy of `veil` inside the sandbox exposes it as `127.0.0.1:8118` and sets `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY=127.0.0.1,localhost`.
+- **Gateway.** A Docker Compose stack allows only the domains you list and sends them through a WARP WireGuard tunnel. DNS is resolved inside the tunnel, never by the client.
+
+## Platforms
+
+| Platform | Status |
+|---|---|
+| Linux | Supported, with bubblewrap and unprivileged user namespaces. Tested end to end on arm64. |
+| macOS | Planned: a Seatbelt backend that allows only the local proxy |
+| Windows | Not supported; see [#3](https://github.com/joaaomanooel/veil/issues/3) |
+
+On other systems `veil run` refuses to start. You can still run the Linux build of `veil` and of your tool inside a Linux VM or container.
+
+## Install
+
+Requirements:
+- Go 1.22 or later
+- Linux with `bwrap` installed at `/usr/bin/bwrap`
+- Unprivileged user namespaces enabled
 
 ```sh
-go test ./...
-go build -o veil ./cmd/veil
+git clone https://github.com/joaaomanooel/veil.git
+cd veil
+CGO_ENABLED=0 go build -o veil ./cmd/veil
 ./veil doctor
-mkdir -p /tmp/veil-test-workspace
-./veil run --profile offline --workspace /tmp/veil-test-workspace -- /bin/sh -c 'printf "HOME=%s\\n" "$HOME"; hostname; ls /home; ls /workspace'
 ```
 
-Run `./veil run --profile offline --workspace /path/to/a/test-project -- opencode --version` only **after** verifying which OpenCode version and binary packaging are installed. The offline sandbox deliberately prevents LLM calls; it might need runtime-specific mounts for OpenCode to launch. A Node/npm shim or dependencies outside `/usr` will not automatically be accessible. Never run with `sudo`.
+Build with `CGO_ENABLED=0`, because the same static binary also runs inside the sandbox. `veil doctor` reports whether `bwrap` and `opencode` are on the `PATH`. It runs nothing and reads no credentials.
 
-### Gateway profile
+## Usage
+
+```
+veil run [--profile offline|gateway] [--gateway HOST:PORT] [--workspace DIR] [--home DIR] -- COMMAND [ARGS...]
+```
+
+| Flag | Default | Meaning |
+|---|---|---|
+| `--profile` | `offline` | `offline` has no network at all. `gateway` allows only the gateway. |
+| `--gateway` | none | `HOST:PORT` of the gateway proxy. It is required with `--profile gateway`, and only then. |
+| `--workspace` | current directory | The only host directory mounted read-write. |
+| `--home` | empty, discarded | A dedicated directory mounted as `HOME`, so logins and tool state survive between runs. |
+
+`veil` refuses `/`, your real home directory and its parents as a workspace or home. It also refuses hidden directories directly under your home as a workspace. Never run it with `sudo`.
+
+### Example: OpenCode through the gateway
 
 ```sh
-./veil run --profile gateway --gateway 192.168.0.11:8118 --workspace /path/to/a/test-project -- opencode run "..."
+mkdir -p ~/veil-homes/opencode
+./veil run --profile gateway --gateway gateway.local:8118 \
+  --workspace ~/projects/demo --home ~/veil-homes/opencode \
+  -- opencode run "add a subtract function to calc.py"
 ```
 
-The sandbox still has no network interfaces. `veil` checks that the gateway answers, binds a host unix socket into the sandbox, and an internal `veil bridge` exposes it as `HTTPS_PROXY=http://127.0.0.1:8118` (`NO_PROXY=127.0.0.1,localhost` keeps OpenCode V2's local server off the proxy). If the gateway is unreachable, `veil` refuses to start the command. Build `veil` with `CGO_ENABLED=0` because the same binary runs inside the sandbox.
+Replace `gateway.local` with the name or IP of the machine that runs the gateway. The dedicated home keeps OpenCode's login and configuration away from your real `HOME`.
 
-## Security invariants (MVP 0)
-- Refuse to run unless Linux and `bwrap` are available. Never fall back to `exec` on the host.
-- Use an isolated network namespace with no network interfaces except loopback. In the gateway profile the only way out is the bound proxy socket.
-- Mount only a chosen workspace read-write, core OS binaries/libraries read-only, selected executable read-only, isolated `/home`, `/tmp`, `/proc`, and `/dev`.
-- Clear inherited environment, including API tokens, `SSH_AUTH_SOCK`, and proxy variables.
-- Reject mounting `/` or the user's full home directory as workspace.
+### Example: offline smoke test
+
+```sh
+mkdir -p /tmp/veil-demo
+./veil run --workspace /tmp/veil-demo -- /bin/sh -c 'echo "HOME=$HOME"; hostname; ls /workspace'
+```
+
+### Using another tool
+
+1. Find the domains the tool needs. Check its documentation, or watch the gateway's `403` responses.
+2. Add the domains to the gateway allowlist (see below).
+3. Use a separate `--home` directory for each tool.
+4. Make sure the tool honors `HTTPS_PROXY`. A tool that ignores it cannot reach the network in the `gateway` profile: it fails instead of leaking.
+
+## Gateway
+
+The stack in [`deploy/pi/gateway`](deploy/pi/gateway) runs on any Docker host on your local network. It has been tested on a Raspberry Pi 3B with Ubuntu 24.04 arm64. The images build from pinned sources on the host itself.
+
+| Service | Role |
+|---|---|
+| `warp-init` | Registers a WARP device on first start. The account stays in the `warp-data` volume. |
+| `warp` | Runs wireproxy, the WARP WireGuard tunnel exposed as SOCKS5 on an internal network. It also runs a watchdog that restarts the tunnel when it stops answering. |
+| `privoxy` | Listens on port 8118, allows only the listed domains and answers `403` to everything else. |
+
+Before the first start, edit two files:
+- `privoxy/config`: set `permit-access` to your local subnet (the example uses `192.168.0.0/24`).
+- `privoxy/allowlist.action`: list your tool's domains as `.example.com:443`. The default allows only `.opencode.ai:443`.
+
+Then start the stack and test it from a client:
+
+```sh
+cd deploy/pi/gateway
+docker compose up -d --build
+curl -sS -o /dev/null -w '%{http_code}\n' -x http://gateway.local:8118 https://opencode.ai/   # 200
+curl -sS -o /dev/null -w '%{http_code}\n' -x http://gateway.local:8118 https://example.com/   # 403
+```
+
+> **Warning:** the gateway has no client authentication yet. Run it only on a network you trust, and never publish port 8118 to the internet. Client authentication with mTLS is planned in [#2](https://github.com/joaaomanooel/veil/issues/2).
+
+Never copy, print or commit the contents of the `warp-data` volume. It holds the WARP private key.
+
+## Threat model
+
+`veil` is designed for these goals:
+- The vendor of the tool sees a Cloudflare WARP address, not your home IP.
+- The tool cannot reach any host outside the allowlist, and has no network when the gateway is down.
+- The tool cannot read or write host files outside the workspace and the dedicated home.
+- The tool does not inherit your environment, such as API tokens, `SSH_AUTH_SOCK` or proxy variables.
+
+`veil` does not protect against these:
+- **Cloudflare.** Cloudflare sees your home IP and the traffic metadata.
+- **Linking sessions.** Accounts, prompts, code and behavior can still link your sessions. The WARP exit address does not rotate.
+- **Your local network.** Anyone on your local network can use or impersonate the gateway until [#2](https://github.com/joaaomanooel/veil/issues/2) is done.
+- **Kernel exploits, a compromised host or privileged processes.**
+- **Files left in the workspace.** Anything you put in the workspace is visible to the tool. A file the tool writes there, such as `.git/hooks/*`, `Makefile` or `.envrc`, runs on the host if you execute it later.
 
 ## Known limitations
-- The workspace contents, including any `.env` or credentials you place there, **are visible to the guest**. Test only with disposable projects.
-- `bubblewrap` and user namespaces depend on host kernel settings; a system can refuse sandbox startup. This must stay fail-closed.
-- Only OpenCode V2 (`v2.1.4`) was exercised, through the gateway profile. Its internal permissions are **not** a substitute for OS sandboxing.
-- No persistent sandbox state, credentials, project access policy, or TUI-specific hardening yet. Signals are forwarded but not tested with the TUI.
-- A tool that ignores `HTTPS_PROXY` cannot reach the network at all in the gateway profile; it fails instead of leaking.
-- Isolation does not guarantee an unidentifiable computer: tool calls, file contents, account identifiers and behavior can still correlate sessions.
-- No guarantee of malware resistance in the presence of kernel exploits, privileged hosts, or trust in mounted project files.
-- A host running OpenCode outside `veil` remains unrestricted by this tool.
 
-## Next iteration
-1. Detect OpenCode installation variant **without executing** unknown binaries; explicitly test V1 vs V2 config.
-2. Create disposable sandbox-specific XDG auth/config storage and interactive TUI support.
-3. Add integration tests for filesystem, network (TCP/DNS), subprocess containment, and exit/signal behavior on real Linux hosts with bwrap.
-4. Add traffic/DNS/IPv6 audits of the gateway profile.
-5. Add a Linux VM backend for macOS (do not run Mach-O executables in Linux).
+- Linux only for now.
+- bubblewrap and user namespaces depend on kernel settings. When they are unavailable, `veil` refuses to start.
+- Interactive TUIs and signal handling have had little testing.
+- `veil doctor` looks for `bwrap` on the `PATH`, while `veil run` requires `/usr/bin/bwrap`.
 
-Sources: https://opencode.ai/docs/en/config/ , https://dev.opencode.ai/v2/docs/permissions/ , https://github.com/containers/bubblewrap
+Open problems and planned work are tracked in [issues](https://github.com/joaaomanooel/veil/issues). Design decisions are recorded in [`docs/`](docs).
+
+## Contributing and security
+
+- See [CONTRIBUTING.md](CONTRIBUTING.md) to build, test and propose changes.
+- Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md), never in a public issue.
+
+## License
+
+[GPL-3.0](LICENSE)
