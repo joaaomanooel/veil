@@ -31,6 +31,7 @@ Gateway changes must keep the end-to-end checks from the [README](README.md#gate
 - **Dependencies.** Prefer the Go standard library. Every new dependency, base image or GitHub Action needs a pinned version (a digest or SHA where possible) and a vulnerability check.
 - **No secrets or personal data.** Never commit keys, tokens, WARP account files, `.env` files or real IP addresses. Use placeholders such as `gateway.local` and `192.168.0.0/24`.
 - **Tests.** Write the test first for new behavior, and add a test that fails without the fix for every bug fix.
+- **Documentation site.** `site/` has no build step and makes no external requests. Keep a first visit to any page, with all the CSS and JavaScript it loads, at or under 20 KB with brotli, and each HTML page at or under 6 KB with brotli.
 - **Commits.** Use [Conventional Commits](https://www.conventionalcommits.org/), such as `feat:`, `fix:`, `docs:` or `chore:`.
 - **Pull requests.** Keep them focused, and explain the reason and how you verified the change.
 

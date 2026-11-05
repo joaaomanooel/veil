@@ -1,0 +1,57 @@
+@layer layouts {
+  .band { padding: var(--space-section) var(--gutter-page); }
+  .band-alt { background: var(--color-bg-band); border-block: var(--border-width-thin) solid var(--color-border); }
+  .band-inner { max-width: var(--size-container); margin: 0 auto; }
+  .band h2 { margin-bottom: var(--space-6); }
+  .hero { text-align: center; }
+  .hero h1 { font-size: var(--text-4xl); line-height: var(--leading-4xl); margin-bottom: var(--space-5); }
+  .hero .lead { max-width: var(--size-hero-text); margin: 0 auto var(--space-6); }
+  .split { display: grid; gap: var(--gap-grid); }
+
+  @media (min-width: 48rem) {
+    .split { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+}
+
+@layer components {
+  .band-inner > :last-child { margin-bottom: 0; }
+  .hero-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-3); margin-bottom: var(--space-7); }
+  .hero-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--space-2) var(--space-3);
+    max-width: var(--size-hero-text);
+    margin: 0 auto;
+    padding: var(--pad-card);
+    text-align: left;
+    font-size: var(--text-sm);
+    line-height: var(--leading-sm);
+  }
+  .hero-status > span:last-child { flex: 1 1 var(--size-card-min-lg); }
+  .feature-grid, .step-cards { grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--size-card-min)), 1fr)); }
+  .feature p, .step-cards p:last-child { color: var(--color-text-muted); font-size: var(--text-sm); line-height: var(--leading-sm); }
+  .step-cards h3 { margin-top: 0; }
+  .landing .cta { justify-content: center; background: none; border: 0; padding: 0; }
+
+  @media (min-width: 48rem) {
+    .diagram-wide { gap: var(--space-9); }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .step-cards .card, .feature { transition: transform var(--duration-base) var(--ease-standard), border-color var(--duration-base) var(--ease-standard), background-color var(--duration-slow) var(--ease-standard); }
+    .step-cards .card:hover, .feature:hover { transform: translateY(var(--lift-hover)); }
+    .is-visible .d-box { animation: hop var(--duration-hop) var(--ease-standard) both; }
+    .is-visible .d-box:nth-of-type(3) { animation-delay: calc(var(--duration-hop-step) * 1); }
+    .is-visible .d-box:nth-of-type(4) { animation-delay: calc(var(--duration-hop-step) * 2); }
+    .is-visible .d-box:nth-of-type(5) { animation-delay: calc(var(--duration-hop-step) * 3); }
+    .is-visible .d-box:nth-of-type(7) { animation-delay: calc(var(--duration-hop-step) * 4); }
+    .is-visible .d-box:nth-of-type(8) { animation-delay: calc(var(--duration-hop-step) * 5); }
+    .is-visible .d-box:nth-of-type(9) { animation-delay: calc(var(--duration-hop-step) * 6); }
+    .is-visible .d-box:nth-of-type(10) { animation-delay: calc(var(--duration-hop-step) * 7); }
+  }
+
+  @keyframes hop {
+    40% { stroke: var(--color-accent); stroke-width: var(--stroke-diagram-line); }
+  }
+}
