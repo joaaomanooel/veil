@@ -1,6 +1,6 @@
 FROM debian:13.6-slim
 RUN apt-get update \
- && apt-get install -y --no-install-recommends privoxy=3.0.34-1 \
+ && apt-get install -y --no-install-recommends privoxy=4.0.0-2 \
  && rm -rf /var/lib/apt/lists/*
 COPY config allowlist.action /etc/privoxy/
 USER privoxy
