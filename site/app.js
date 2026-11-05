@@ -119,6 +119,7 @@
     list.addEventListener("click", function (event) {
       if (event.target.closest("a")) setOpen(false);
     });
+    root.classList.add("nav-ready");
   }
 
   function setupToc() {
