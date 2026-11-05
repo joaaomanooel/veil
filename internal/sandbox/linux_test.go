@@ -194,6 +194,45 @@ func TestBuildOfflinePlan_RejectsRealHomeAsDedicatedHome(t *testing.T) {
 	}
 }
 
+func TestDedicatedHome_RejectsHiddenDirectoriesInsideHome(t *testing.T) {
+	// Arrange
+	realHome := t.TempDir()
+	t.Setenv("HOME", realHome)
+	candidates := []string{filepath.Join(realHome, ".ssh"), filepath.Join(realHome, ".config", "opencode")}
+	for _, candidate := range candidates {
+		if err := os.MkdirAll(candidate, 0700); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	for _, candidate := range candidates {
+		// Act
+		_, err := dedicatedHome(candidate)
+		// Assert
+		if err == nil || !strings.Contains(err.Error(), "hidden directory") {
+			t.Errorf("expected hidden directory rejection of %q, got %v", candidate, err)
+		}
+	}
+}
+
+func TestDedicatedHome_AcceptsVisibleDirectoryInsideHome(t *testing.T) {
+	// Arrange
+	realHome := t.TempDir()
+	t.Setenv("HOME", realHome)
+	candidate := filepath.Join(realHome, "veil-home")
+	if err := os.MkdirAll(candidate, 0700); err != nil {
+		t.Fatal(err)
+	}
+
+	// Act
+	_, err := dedicatedHome(candidate)
+
+	// Assert
+	if err != nil {
+		t.Fatalf("expected %q to be accepted, got %v", candidate, err)
+	}
+}
+
 func TestBuildGatewayPlan_KeepsNetworkUnsharedAndMountsOnlyTheProxySocket(t *testing.T) {
 	// Arrange
 	if runtime.GOOS != "linux" {

@@ -1,3 +1,3 @@
-module example.com/veil
+module github.com/joaaomanooel/veil
 
 go 1.22

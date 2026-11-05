@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"testing"
 
-	"example.com/veil/internal/sandbox"
+	"github.com/joaaomanooel/veil/internal/sandbox"
 )
 
 func TestMain(m *testing.M) {
@@ -155,6 +155,13 @@ func TestRun_GatewayFailsClosedWhenProxyUnreachable(t *testing.T) {
 	}
 }
 
+func trustGateway(t *testing.T) {
+	t.Helper()
+	original := verifyGateway
+	verifyGateway = func(gateway string) (string, error) { return gateway, nil }
+	t.Cleanup(func() { verifyGateway = original })
+}
+
 func requireRealBwrap(t *testing.T) {
 	t.Helper()
 	if runtime.GOOS != "linux" {
@@ -185,6 +192,7 @@ func TestRun_PersistsSandboxHomeInDedicatedDirectory(t *testing.T) {
 func TestGatewaySandbox_ReachesProxyThroughSocket(t *testing.T) {
 	// Arrange
 	requireRealBwrap(t)
+	trustGateway(t)
 	proxy, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
@@ -226,6 +234,7 @@ printf '%s' "$HTTPS_PROXY" > /workspace/proxy-env`
 func TestGatewaySandbox_BlocksDirectConnections(t *testing.T) {
 	// Arrange
 	requireRealBwrap(t)
+	trustGateway(t)
 	proxy, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)

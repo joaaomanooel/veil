@@ -99,7 +99,7 @@ The stack in [`deploy/pi/gateway`](deploy/pi/gateway) runs on any Docker host on
 
 Before the first start, edit two files:
 - `privoxy/config`: set `permit-access` to your local subnet (the example uses `192.168.0.0/24`).
-- `privoxy/allowlist.action`: list your tool's domains as `.example.com:443`. The default allows only `.opencode.ai:443`.
+- `privoxy/allowlist.action`: list your tool's domains as `.example.com:443`. The default allows `.opencode.ai:443` and `www.cloudflare.com:443`. Keep the Cloudflare entry: veil fetches its trace through the gateway before each session and refuses to start unless it reports `warp=on`.
 
 Then start the stack and test it from a client:
 
@@ -108,6 +108,15 @@ cd deploy/pi/gateway
 docker compose up -d --build
 curl -sS -o /dev/null -w '%{http_code}\n' -x http://gateway.local:8118 https://opencode.ai/   # 200
 curl -s -o /dev/null -w '%{http_connect}\n' -x http://gateway.local:8118 https://example.com/   # 403
+```
+
+Privoxy must stay on a network that is not internal, so the port can be published. To make sure it can only reach WARP, install a firewall rule that rejects new outbound connections from that network, and a service that restores the rule at boot:
+
+```sh
+sudo install -m 0755 egress-lock.sh /usr/local/sbin/veil-egress-lock
+sudo install -m 0644 veil-egress-lock.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now veil-egress-lock
 ```
 
 > **Warning:** the gateway has no client authentication yet. Run it only on a network you trust, and never publish port 8118 to the internet. Client authentication with mTLS is planned in [#2](https://github.com/joaaomanooel/veil/issues/2).

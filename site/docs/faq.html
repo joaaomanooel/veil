@@ -98,7 +98,7 @@
 </div>
 <div class="card">
 <h3>What happens if the gateway is down?</h3>
-<p>veil refuses to start. Before it runs the tool, it checks that it can reach the gateway, and it stops with <code>gateway unreachable: refusing execution</code> if it cannot. It never falls back to a direct connection.</p>
+<p>veil refuses to start. Before it runs the tool, it fetches the Cloudflare trace through the gateway and checks that it reports <code>warp=on</code>. If the gateway is down, or its traffic does not leave through WARP, veil stops with <code>refusing execution</code>, and it keeps using the gateway address it checked for the rest of the session. It never falls back to a direct connection.</p>
 </div>
 <div class="card">
 <h3>Can I use Claude Code or Codex?</h3>
