@@ -36,7 +36,7 @@ services:
     restart: unless-stopped
     networks: [edge, socks]
     ports:
-      - "8118:8118"
+      - "0.0.0.0:8118:8118"
     depends_on: [warp]
 
 networks:

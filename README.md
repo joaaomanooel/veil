@@ -31,7 +31,7 @@ The sandbox still has no network interfaces. `veil` checks that the gateway answ
 
 ### Raspberry Pi gateway
 
-`deploy/pi/gateway` runs on the Pi with `docker compose up -d --build`. Privoxy on port 8118 accepts clients from `192.168.0.0/24`, allows only `.opencode.ai:443` (anything else gets `403`) and forwards to wireproxy, a SOCKS5 proxy on the internal `socks` network that sends traffic through a Cloudflare WARP WireGuard tunnel. DNS is resolved by wireproxy over TCP inside the tunnel, never by the client. A watchdog restarts wireproxy on a new UDP source port when the tunnel stops answering. The WARP account is created on first start and stays in the `warp-data` volume; never copy or print it. See `docs/ADR-002.md` for the reasons and the end-to-end evidence.
+`deploy/pi/gateway` runs on the Pi with `docker compose up -d --build`. Privoxy on IPv4 port 8118 accepts clients from `192.168.0.0/24`, allows only `.opencode.ai:443` (anything else gets `403`) and forwards to wireproxy, a SOCKS5 proxy on the internal `socks` network that sends traffic through a Cloudflare WARP WireGuard tunnel. DNS is resolved by wireproxy over TCP inside the tunnel, never by the client. A watchdog restarts wireproxy on a new UDP source port when the tunnel stops answering. The WARP account is created on first start and stays in the `warp-data` volume; never copy or print it. See `docs/ADR-002.md` for the reasons and the end-to-end evidence.
 
 ## Security invariants (MVP 0)
 - Refuse to run unless Linux and `bwrap` are available. Never fall back to `exec` on the host.
