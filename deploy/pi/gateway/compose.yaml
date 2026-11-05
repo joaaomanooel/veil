@@ -41,7 +41,9 @@ services:
 
 networks:
   egress: {}
-  edge: {}
+  edge:
+    driver_opts:
+      com.docker.network.bridge.name: veil-edge
   socks:
     internal: true
     ipam:

@@ -106,7 +106,7 @@
 <p>Before the first start, edit two files:</p>
 <ul>
 <li><code>privoxy/config</code>: set <code>permit-access</code> to your local subnet. The example uses <code>192.168.0.0/24</code>.</li>
-<li><code>privoxy/allowlist.action</code>: list your tool's domains as <code>.example.com:443</code>. The default allows only <code>.opencode.ai:443</code>.</li>
+<li><code>privoxy/allowlist.action</code>: list your tool's domains as <code>.example.com:443</code>. The default allows <code>.opencode.ai:443</code> and <code>www.cloudflare.com:443</code>. Keep the Cloudflare entry: veil fetches its trace through the gateway before each session and refuses to start unless it reports <code>warp=on</code>.</li>
 </ul>
 </li>
 <li>
@@ -123,6 +123,15 @@
 <p>Any other domain should print <code>403</code>:</p>
 <div class="code">
 <pre data-copy="blocked curl test" tabindex="0"><code>curl -s -o /dev/null -w '%{http_connect}\n' -x http://gateway.local:8118 https://example.com/</code></pre>
+</div>
+</li>
+<li>
+<p>Lock Privoxy's egress. Privoxy must stay on a network that is not internal, so the port can be published. This firewall rule rejects new outbound connections from that network, and the service restores it at boot:</p>
+<div class="code">
+<pre data-copy="egress lock commands" tabindex="0"><code>sudo install -m 0755 egress-lock.sh /usr/local/sbin/veil-egress-lock
+sudo install -m 0644 veil-egress-lock.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now veil-egress-lock</code></pre>
 </div>
 </li>
 </ol>

@@ -197,6 +197,9 @@ func dedicatedHome(dir string) (string, error) {
 	if actual == "/" || actual == realHome || isParent(actual, realHome) {
 		return "", errors.New("refusing to mount the real home directory or its parent as the sandbox home")
 	}
+	if isInsideHiddenHomeDir(realHome, actual) {
+		return "", errors.New("refusing to mount a hidden directory inside home (such as ~/.ssh or ~/.config) as the sandbox home")
+	}
 	return actual, nil
 }
 

@@ -14,8 +14,9 @@ import (
 	"syscall"
 	"time"
 
-	"example.com/veil/internal/bridge"
-	"example.com/veil/internal/sandbox"
+	"github.com/joaaomanooel/veil/internal/bridge"
+	"github.com/joaaomanooel/veil/internal/sandbox"
+	"github.com/joaaomanooel/veil/internal/warpcheck"
 )
 
 func main() { os.Exit(run(os.Args[1:])) }
@@ -80,6 +81,10 @@ func run(args []string) int {
 	}
 }
 
+var verifyGateway = func(gateway string) (string, error) {
+	return warpcheck.Verify(gateway, warpcheck.TraceURL, nil)
+}
+
 func runGateway(cfg sandbox.OfflineConfig, gateway string) int {
 	dir, err := os.MkdirTemp("", "veil-")
 	if err != nil {
@@ -103,13 +108,12 @@ func runGateway(cfg sandbox.OfflineConfig, gateway string) int {
 		fmt.Fprintln(os.Stderr, "isolation error:", err)
 		return 1
 	}
-	probe, err := net.DialTimeout("tcp", gateway, 5*time.Second)
+	pinned, err := verifyGateway(gateway)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "gateway unreachable: refusing execution:", err)
+		fmt.Fprintln(os.Stderr, "refusing execution:", err)
 		return 1
 	}
-	probe.Close()
-	go bridge.Serve(ln, func() (net.Conn, error) { return net.DialTimeout("tcp", gateway, 10*time.Second) })
+	go bridge.Serve(ln, func() (net.Conn, error) { return net.DialTimeout("tcp", pinned, 10*time.Second) })
 	fmt.Fprintln(os.Stderr, "Gateway sandbox: egress only through", gateway, "; workspace:", filepath.Clean(cfg.Workspace))
 	return runIsolated(plan)
 }
@@ -156,8 +160,7 @@ func runIsolated(plan sandbox.Plan) int {
 	child := exec.Command(plan.Executable, append([]string{"--info-fd", "3"}, plan.Args...)...)
 	child.Stdin, child.Stdout, child.Stderr = os.Stdin, os.Stdout, os.Stderr
 	child.ExtraFiles = []*os.File{infoW}
-	// Own process group: Ctrl+C must reach only veil, or bwrap dies and SIGKILLs the sandbox.
-	child.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	child.SysProcAttr = ownProcessGroup()
 
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGHUP)
@@ -195,7 +198,7 @@ func forwardSignals(signals <-chan os.Signal, info *os.File, bwrap *os.Process) 
 	_ = json.NewDecoder(info).Decode(&sandboxInfo)
 	for sig := range signals {
 		if sandboxInfo.ChildPid > 0 {
-			_ = syscall.Kill(sandboxInfo.ChildPid, sig.(syscall.Signal))
+			_ = signalPid(sandboxInfo.ChildPid, sig)
 		} else {
 			_ = bwrap.Signal(sig)
 		}
