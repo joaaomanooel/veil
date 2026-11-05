@@ -34,7 +34,7 @@ On other systems `veil run` refuses to start. You can still run the Linux build 
 ## Install
 
 Requirements:
-- Go 1.22 or later
+- Go 1.27 or later
 - Linux with `bwrap` installed at `/usr/bin/bwrap`
 - Unprivileged user namespaces enabled
 
