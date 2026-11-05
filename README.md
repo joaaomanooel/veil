@@ -107,7 +107,7 @@ Then start the stack and test it from a client:
 cd deploy/pi/gateway
 docker compose up -d --build
 curl -sS -o /dev/null -w '%{http_code}\n' -x http://gateway.local:8118 https://opencode.ai/   # 200
-curl -sS -o /dev/null -w '%{http_code}\n' -x http://gateway.local:8118 https://example.com/   # 403
+curl -s -o /dev/null -w '%{http_connect}\n' -x http://gateway.local:8118 https://example.com/   # 403
 ```
 
 > **Warning:** the gateway has no client authentication yet. Run it only on a network you trust, and never publish port 8118 to the internet. Client authentication with mTLS is planned in [#2](https://github.com/joaaomanooel/veil/issues/2).
