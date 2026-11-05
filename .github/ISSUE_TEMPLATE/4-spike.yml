@@ -1,0 +1,57 @@
+name: Spike
+description: Uma pesquisa com prazo para responder perguntas antes de decidir ou implementar.
+labels: [spike]
+body:
+  - type: markdown
+    attributes:
+      value: Não cole IPs de casa, chaves, contas WARP, tokens ou outros dados pessoais. Use placeholders.
+  - type: input
+    id: parent
+    attributes:
+      label: Issue de origem
+      description: A issue que depende deste spike. Depois de criar, ligue este spike como sub-issue dela.
+      placeholder: "#3"
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto
+      description: Qual decisão está bloqueada e por quê.
+    validations:
+      required: true
+  - type: textarea
+    id: questions
+    attributes:
+      label: Perguntas
+      description: Cada pergunta precisa ter uma resposta verificável.
+      placeholder: |
+        1. O bwrap funciona no WSL2 com user namespaces sem privilégio?
+    validations:
+      required: true
+  - type: textarea
+    id: method
+    attributes:
+      label: Como responder
+      description: Experimentos, medições e fontes. Diga onde os testes rodam e o que não pode ser exposto.
+    validations:
+      required: true
+  - type: input
+    id: timebox
+    attributes:
+      label: Prazo
+      placeholder: 4 horas
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Resultado esperado
+      description: O que o spike entrega, como um comentário com as respostas, um ADR ou novas issues.
+    validations:
+      required: true
+  - type: textarea
+    id: artifacts
+    attributes:
+      label: Artefatos
+      description: Links para artifacts, protótipos descartáveis, medições e fontes.

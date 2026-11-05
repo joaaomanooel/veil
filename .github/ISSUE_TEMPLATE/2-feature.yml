@@ -1,0 +1,83 @@
+name: Funcionalidade
+description: Uma mudança de comportamento ou de arquitetura, com regras, requisitos e critérios de aceite.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: Não cole IPs de casa, chaves, contas WARP, tokens ou outros dados pessoais. Use placeholders.
+  - type: input
+    id: parent
+    attributes:
+      label: Épico
+      description: O número do épico, se houver. Depois de criar, ligue esta issue como sub-issue dele.
+      placeholder: "#4"
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto
+      description: O problema de hoje, com medições quando houver.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposta
+      description: A solução em poucas frases. Um diagrama ajuda quando há mais de um componente.
+    validations:
+      required: true
+  - type: textarea
+    id: rules
+    attributes:
+      label: Regras de negócio (RN)
+      placeholder: "- **RN01:** o tráfego só sai pelo gateway."
+    validations:
+      required: true
+  - type: textarea
+    id: functional
+    attributes:
+      label: Requisitos funcionais (RF)
+      placeholder: "- **RF01:** ..."
+    validations:
+      required: true
+  - type: textarea
+    id: non-functional
+    attributes:
+      label: Requisitos não funcionais (RNF)
+      description: Segurança, recursos, disponibilidade, dependências e operação.
+      placeholder: "- **RNF01 (segurança):** ..."
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de aceite (AC)
+      description: No formato dado, quando, então. Cada critério precisa ser verificável.
+      placeholder: "- **AC01:** dado ..., quando ..., então ..."
+    validations:
+      required: true
+  - type: textarea
+    id: spec
+    attributes:
+      label: Spec
+      description: Componentes, arquivos afetados, configuração, ordem de implementação e o spike, se houver.
+  - type: textarea
+    id: adr
+    attributes:
+      label: ADR (proposta)
+      description: A decisão proposta, a tabela de opções com prós e contras, e as consequências.
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Fora do escopo
+    validations:
+      required: true
+  - type: textarea
+    id: unverified
+    attributes:
+      label: Não verificado
+      description: O que ainda não foi confirmado e pode mudar a proposta.
+  - type: textarea
+    id: artifacts
+    attributes:
+      label: Artefatos
+      description: Links para artifacts (páginas HTML, diagramas, documentos), ADRs, specs, PRs e pesquisas.
