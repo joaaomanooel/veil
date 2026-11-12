@@ -9,7 +9,7 @@ RUN git clone --depth 1 --branch v1.1.3 https://github.com/whyvl/wireproxy.git \
  && cd wireproxy && go get golang.org/x/net@v0.62.0 && go mod tidy \
  && go build -o /out/wireproxy ./cmd/wireproxy
 
-FROM debian:13.6-slim
+FROM debian:13.7-slim
 RUN apt-get update \
  && apt-get install -y --no-install-recommends ca-certificates \
  && rm -rf /var/lib/apt/lists/* \
