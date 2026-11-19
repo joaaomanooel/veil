@@ -1,4 +1,4 @@
-FROM golang:1.27.3-bookworm AS build
+FROM golang:1.27.4-bookworm AS build
 ENV CGO_ENABLED=0 GOFLAGS=-trimpath GOTOOLCHAIN=local
 WORKDIR /src
 RUN git clone --depth 1 --branch v2.3.1 https://github.com/ViRb3/wgcf.git \
